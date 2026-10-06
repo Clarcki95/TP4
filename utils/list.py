@@ -52,13 +52,13 @@ class List:
 
         elif index == self.size:
             # Insérer à la fin.
-            previous_node = self.get(index - 1)
+            previous_node = self.get_node(index - 1)
             previous_node.set_next(new_node)
 
         else:
             # Insérer entre deux éléments.
-            previous_node = self.get(index - 1)
-            next_node = self.get(index)
+            previous_node = self.get_node(index - 1)
+            next_node = self.get_node(index)
 
             previous_node.set_next(new_node)
             new_node.set_next(next_node)
@@ -95,19 +95,19 @@ class List:
 
         elif index == self.size - 1:
             # Supprimer le dernier élément.
-            previous_node = self.get(index - 1)
+            previous_node = self.get_node(index - 1)
             previous_node.set_next(None)
 
         else:
             # Supprimer un élément intermédiaire.
-            previous_node = self.get(index - 1)
-            next_node = self.get(index + 1)
+            previous_node = self.get_node(index - 1)
+            next_node = self.get_node(index + 1)
 
             previous_node.set_next(next_node)
 
         self.size -= 1
 
-    def get(self, index: int):
+    def get_node(self, index: int):
         """
         Récupère le noeud situé à une position donnée.
 
@@ -135,6 +135,19 @@ class List:
             current = current.next
 
         return current
+
+    def get(self, index: int):
+        """
+        Récupère la valeur d'un noeud à une position donnée.
+
+        Args:
+            index (int): Position du noeud à récupérer.
+
+        Returns:
+            Any: Valeur du noeud à l'index demandé.
+        """
+        node = self.get_node(index)
+        return node.value
 
     def to_list(self):
         """
