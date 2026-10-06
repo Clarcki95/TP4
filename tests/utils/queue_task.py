@@ -1,3 +1,8 @@
+"""
+Fichier: tests/utils/queue_task.py
+But: Test unitaire pour la classe Queue.
+Auteur: Nino BELAOUD
+"""
 from utils.queue import Queue
 
 print("==============================")

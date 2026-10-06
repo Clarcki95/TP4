@@ -1,9 +1,14 @@
+"""
+Fichier: tests/utils/stack_test.py
+But: Test unitaire pour la classe Stack.
+Auteur: Nino BELAOUD
+"""
 from utils.stack import Stack
-
-stack = Stack()
 
 print("==============================")
 print("utils/stack.py")
+
+stack = Stack()
 
 assert stack.is_empty()
 assert stack.get_size() == 0

@@ -1,9 +1,14 @@
+"""
+Fichier: tests/utils/list_test.py
+But: Test unitaire pour la classe List.
+Auteur: Nino BELAOUD
+"""
 from utils.list import List
-
-list = List()
 
 print("==============================")
 print("utils/list.py")
+
+list = List()
 
 assert list.size == 0
 assert list.first is None
