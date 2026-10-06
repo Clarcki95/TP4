@@ -1,4 +1,4 @@
-import Instances.Affichage_tkinter as tkinter
+import utils.Affichage_tkinter as tkinter
 
 fenêtre = tkinter.Affichage_tkinter()
 
