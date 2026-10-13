@@ -6,6 +6,7 @@ ToDo : finir Keybinds, affichage du jeu, background du menu principal
 """
 
 import tkinter as tk
+from pathlib import Path
 from utils.racket import Racket
 
 import numpy as np
@@ -34,6 +35,11 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
 
         self.base_canvas = tk.Canvas(self, width = 1600, height = 1000, background="red")
         self.base_canvas.pack(fill="both", expand=True)
+
+        background_path = Path(__file__).resolve().parent.parent / "Ressources" / "backgrounds" / "game_bg.gif"
+        # Adapter l'image de 1200x750 à la zone de jeu de 1600x1000.
+        self.game_background = tk.PhotoImage(file=str(background_path)).zoom(4, 4).subsample(3, 3)
+        self.base_canvas.create_image(0, 0, image=self.game_background, anchor=tk.NW)
 
 
         self.bind("<Escape>", lambda event: self.toggle_current_menu(self.option_menu))
