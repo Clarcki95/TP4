@@ -1,0 +1,4 @@
+- Brique spéciale
+- Ecran de fin
+- Keybind
+- Gestion des niveaux
