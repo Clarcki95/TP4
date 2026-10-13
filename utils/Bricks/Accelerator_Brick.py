@@ -8,8 +8,8 @@ ToDo : onDeath
 import Brick as B
 
 class Accelerator_Brick(B.Brick):
-    def __init__(self, posX, posY):
-        super().__init__(posX, posY)
+    def __init__(self):
+        super().__init__()
 
         self.pv = 2
         self.score = 15

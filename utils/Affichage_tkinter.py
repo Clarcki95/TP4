@@ -6,6 +6,7 @@ ToDo : finir Keybinds, affichage du jeu, background du menu principal
 """
 
 import tkinter as tk
+from utils.racket import Racket
 
 class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre tkinter
     def __init__(self):
@@ -14,26 +15,33 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
         self.title("Casse brique")
         self.geometry("1600x1000")
 
+        self.base_canvas = tk.Canvas(self, width = 1600, height = 1000, background="red")
+        self.base_canvas.pack(fill="both", expand=True)
+
         self.bind("<Escape>", lambda event: self.toggle_current_menu(self.option_menu))
-        self.bind("<Delete>", self.close)
+        self.bind("<Delete>", lambda event : self.close)
+        self.bind("<Left>", lambda event : self.Racket.move_left())
+        self.bind("<Right>", lambda event : self.Racket.move_right())
 
         self.create_option_menu()
         self.create_main_menu()
 
         self.wm_attributes("-transparentcolor", "yellow") #la couleur jaune devient transparente
-
+    
     def toggle_current_menu(self, canva, event=None):
         """
         But : Afficher / Cacher le menu actuel
-        Entrée : (self, classe), (event, évènement tkinter)
+        Entrée : canva, le menu à afficher ou cacher
         Sortie : aucune
         """
-        if canva.winfo_ismapped() :
-            canva.pack_forget() #cache le canva
-        elif canva == self.main_menu :
-            self.main_menu.pack(fill="both", expand=True) #rend le canva visible, fill l'écran et s'étend
-        else :
-            canva.pack(anchor=tk.CENTER, expand=True) #permet de placer le canva au centre, expansible
+        if canva.winfo_ismapped():
+            canva.pack_forget()
+
+        elif canva == self.option_menu:
+            canva.pack(anchor=tk.CENTER, expand=True)
+
+        else:
+            canva.pack(fill="both", expand=True)
     
     def close(self, event):
         """
@@ -59,7 +67,7 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
 
         Space = (Height - 2 * Outline) / (OptionsNumber + 1) 
 
-        self.option_menu = tk.Canvas(self, width = Width, height = Height, background="yellow") #création du canva
+        self.option_menu = tk.Canvas(self.base_canvas, width = Width, height = Height, background="yellow") #création du canva
 
         #création du style du menu
         self.option_menu.create_rectangle((0, 0), (Height, Height),
@@ -130,7 +138,7 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
 
         Space = (Height - 2 * Outline) / (OptionsNumber + 1)
 
-        self.main_menu = tk.Canvas(self, width = Width, height = Height, background="black") #création du canva
+        self.main_menu = tk.Canvas(self.base_canvas, width = Width, height = Height, background="black") #création du canva
 
         self.main_menu.create_text((Width / 2, 50 + Space),
                                      text = "Casse Brique",
@@ -166,6 +174,9 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
         Sortie : aucune
         """
         self.toggle_current_menu(self.main_menu)
+        
+        self.Racket = Racket(self.base_canvas)
+        self.base_canvas.tag_raise(self.Racket.rect)
 
     def keybinds(self, event):
         """

@@ -6,18 +6,17 @@ ToDo :
 """
 
 import tkinter as tk
+import physics.hitbox as hitbox
 
 class Brick(tk.Label):
     def __init__(self, posX, posY):
         super().__init__()
 
         self.pv = 1
-        self.x_size = 1
-        self.y_size = 1
-        self.posX = posX
-        self.posY = posY
         self.texture = "./Ressources/Bricks/brick.webp"
         self.score = 10
+
+        self.hitbox = hitbox.Hitbox(posX, posY, 100, 50)
 
         self.create()
 
