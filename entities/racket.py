@@ -1,4 +1,8 @@
-"""Raquette du joueur : affichage, déplacements et hitbox."""
+"""
+Fichier: ball.py
+But: Raquette du joueur
+Auteur: Tristan GUIEU
+"""
 
 import tkinter as tk
 
