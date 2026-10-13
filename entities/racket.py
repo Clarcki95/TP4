@@ -1,5 +1,5 @@
 """
-Fichier: ball.py
+Fichier: racket.py
 But: Raquette du joueur
 Auteur: Tristan GUIEU
 """
