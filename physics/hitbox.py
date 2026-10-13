@@ -32,6 +32,13 @@ class Hitbox:
 
         self.set_pos(x, y)
 
+    def update_movement(self):
+        """
+        Mettre à jour la position de la hitbox en fonction de sa vitesse.
+        """
+        self.x += self.vx
+        self.y += self.vy
+
     def set_pos(self, x: float, y: float):
         """
         Définir la position de la hitbox.
