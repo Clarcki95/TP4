@@ -5,7 +5,7 @@ Date : 13/10/26
 ToDo : détruire les briques dans un carré de <radius>
 """
 
-import Brick as B
+import entities.bricks.brick as B
 
 class Explosive_Brick(B.Brick):
     def __init__(self, posX, posY):
@@ -13,7 +13,7 @@ class Explosive_Brick(B.Brick):
 
         self.pv = 4
         self.radius = 1
-        self.texture = "./Ressources/Bricks/explosive_brick.webp"
+        self.texture = "./ressources/bricks/explosive_brick.webp"
         self.score = 30
 
     def onDeath(self):

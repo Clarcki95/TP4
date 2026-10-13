@@ -5,7 +5,7 @@ Date : 13/10/26
 ToDo : onDeath
 """
 
-import Brick as B
+import entities.bricks.brick as B
 
 class Accelerator_Brick(B.Brick):
     def __init__(self):
@@ -13,7 +13,7 @@ class Accelerator_Brick(B.Brick):
 
         self.pv = 2
         self.score = 15
-        self.texture = "./Ressources/Bricks/accelerator_brick.webp"
+        self.texture = "./ressources/bricks/accelerator_brick.webp"
 
     def onDeath(self):
         return super().onDeath()

@@ -18,7 +18,7 @@ class Brick(tk.Label):
         super().__init__(master, borderwidth=0, highlightthickness=0)
 
         self.pv = 1
-        self.texture = Path(__file__).resolve().parents[2] / "Ressources" / "Bricks" / "brick.webp"
+        self.texture = Path(__file__).resolve().parents[2] / "ressources" / "bricks" / "brick.webp"
         self.score = 10
 
         self.hitbox = hitbox.Hitbox(posX, posY, 100, 50)

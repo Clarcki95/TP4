@@ -1,4 +1,4 @@
-import utils.Affichage_tkinter as tkinter
+import game.affichage_tkinter as tkinter
 
 fenêtre = tkinter.Affichage_tkinter()
 
