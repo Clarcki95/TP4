@@ -20,5 +20,6 @@ class Ball:
         self.drawing = self.canvas.create_oval(self.hitbox.x_min, self.hitbox.y_min, self.hitbox.x_max, self.hitbox.y_max, fill="blue")
 
     def update(self):
-        self.hitbox.update_movement()
-        self.canvas.coords(self.drawing, self.hitbox.x_min, self.hitbox.y_min, self.hitbox.x_max, self.hitbox.y_max)
+        if self.drawing is not None:
+            self.hitbox.update_movement()
+            self.canvas.coords(self.drawing, self.hitbox.x_min, self.hitbox.y_min, self.hitbox.x_max, self.hitbox.y_max)

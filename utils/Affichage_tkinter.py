@@ -18,15 +18,23 @@ from utils.list import List
 L = 1600
 H = 1000
 
+TICK_RATE = 100
+TICK_DURATION_MS = int(1000 / TICK_RATE)
+
 class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre tkinter
     def __init__(self):
         super().__init__() #crée la fenêtre
 
+        # Pause
+        self.paused = False
+
         self.title("Casse brique")
         self.geometry("1600x1000")
+        self.attributes("-fullscreen", True)
 
         self.base_canvas = tk.Canvas(self, width = 1600, height = 1000, background="red")
         self.base_canvas.pack(fill="both", expand=True)
+
 
         self.bind("<Escape>", lambda event: self.toggle_current_menu(self.option_menu))
         self.bind("<Delete>", lambda event : self.close)
@@ -45,7 +53,7 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
         vx = v0 * np.cos(theta)
         vy = v0 * np.sin(theta)
 
-        ball = Ball(self.base_canvas, L/2, H/2, vx, vy)
+        self.ball = Ball(self.base_canvas, L/2, H/2, vx, vy)
         # ================
 
         # ================
@@ -69,6 +77,24 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
 
         self.wm_attributes("-transparentcolor", "yellow") #la couleur jaune devient transparente
 
+    def tick(self):
+        if self.paused:
+            self.base_canvas.after(TICK_DURATION_MS, self.tick)
+            return
+        self.compute_collisions()
+        self.ball.update()
+        # print("tick")
+        self.base_canvas.after(TICK_DURATION_MS, self.tick)
+
+    def compute_collisions(self):
+        for wall in self.walls.to_list():
+            will_collide = wall.compute_collision(self.ball)
+            if will_collide and not wall.is_bouncy():
+                # TODO: Fin
+                print("Perdu")
+
+        self.ball.hitbox.compute_collision(self.Racket.hitbox)
+
     def toggle_current_menu(self, canva, event=None):
         """
         But : Afficher / Cacher le menu actuel
@@ -77,8 +103,10 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
         """
         if canva.winfo_ismapped():
             canva.pack_forget()
+            self.paused = False
 
         elif canva == self.option_menu:
+            self.paused = True
             canva.pack(anchor=tk.CENTER, expand=True)
 
         else:
@@ -218,6 +246,7 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
 
         self.Racket = Racket(self.base_canvas)
         self.base_canvas.tag_raise(self.Racket.rect)
+        self.base_canvas.after(TICK_DURATION_MS, self.tick)
 
     def keybinds(self, event):
         """

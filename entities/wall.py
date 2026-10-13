@@ -14,11 +14,12 @@ class Wall:
     def __init__(self, canvas: tk.Canvas, x: float, y: float, width: float, height: float, bouncy: bool):
         self.canvas = canvas
         self.hitbox = Hitbox(x, y, width, height)
-        self.rectangle_id = canvas.create_rectangle(x - width / 2, y - height / 2, x + width / 2, y + height / 2, fill="green")
+        self.rectangle_id = canvas.create_rectangle(self.hitbox.x_min, self.hitbox.y_min, self.hitbox.x_max, self.hitbox.y_max, fill="green")
+        self.canvas.tag_raise(self.rectangle_id)
         self.bouncy = bouncy
 
     def is_bouncy(self) -> bool:
         return self.bouncy
 
-    def is_hitting(self, ball: Ball) -> bool:
-        return self.hitbox.compute_collision(ball.hitbox)
+    def compute_collision(self, ball: Ball) -> bool:
+        return ball.hitbox.compute_collision(self.hitbox)
