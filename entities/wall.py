@@ -11,10 +11,26 @@ from physics.hitbox import Hitbox
 
 
 class Wall:
-    def __init__(self, canvas: tk.Canvas, x: float, y: float, width: float, height: float, bouncy: bool):
+    """Mur fixe associé à un rectangle et à une hitbox."""
+
+    def __init__(
+        self,
+        canvas: tk.Canvas,
+        x: float,
+        y: float,
+        width: float,
+        height: float,
+        bouncy: bool,
+    ) -> None:
         self.canvas = canvas
         self.hitbox = Hitbox(x, y, width, height)
-        self.rectangle_id = canvas.create_rectangle(self.hitbox.x_min, self.hitbox.y_min, self.hitbox.x_max, self.hitbox.y_max, fill="green")
+        self.rectangle_id = canvas.create_rectangle(
+            self.hitbox.x_min,
+            self.hitbox.y_min,
+            self.hitbox.x_max,
+            self.hitbox.y_max,
+            fill="green",
+        )
         self.canvas.tag_raise(self.rectangle_id)
         self.bouncy = bouncy
 
