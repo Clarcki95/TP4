@@ -7,6 +7,7 @@ ToDo : finir Keybinds, affichage du jeu, background du menu principal
 
 import tkinter as tk
 from pathlib import Path
+from utils.Bricks.Brick import Brick
 from utils.racket import Racket
 
 import numpy as np
@@ -48,6 +49,19 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
         self.bind("<Right>", lambda event : self.Racket.move_right())
 
         # ================
+        # Briques
+        #
+        self.bricks = List()
+
+        self.bricks.add(Brick(400, 150, self.base_canvas))
+        self.bricks.add(Brick(800, 150, self.base_canvas))
+        self.bricks.add(Brick(600, 150, self.base_canvas))
+        self.bricks.add(Brick(1000, 150, self.base_canvas))
+        self.bricks.add(Brick(1200, 150, self.base_canvas))
+
+        # ================
+
+        # ================
         #
         # Balle
         #
@@ -84,20 +98,39 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
         self.wm_attributes("-transparentcolor", "yellow") #la couleur jaune devient transparente
 
     def tick(self):
+        # Si on est en pause, on ne met rien à jour
         if self.paused:
+            # Relancer le tick
             self.base_canvas.after(TICK_DURATION_MS, self.tick)
             return
-        self.compute_collisions()
+
+        # Tick les collisions
+        self.tick_collisions()
+
+        # Mettre à jour la position de la balle
         self.ball.update()
-        # print("tick")
+
+        # Relancer le tick
         self.base_canvas.after(TICK_DURATION_MS, self.tick)
 
-    def compute_collisions(self):
+    def tick_collisions(self):
+        # Murs
         for wall in self.walls.to_list():
             will_collide = wall.compute_collision(self.ball)
             if will_collide and not wall.is_bouncy():
                 # TODO: Fin
                 print("Perdu")
+
+        # Briques
+        for i, brick in enumerate(self.bricks.to_list()):
+            will_collide = brick.compute_collision(self.ball)
+            if will_collide:
+                # La brique est touchée
+                brick.onTouch()
+
+                # Si la brique n'a plus de PV, la supprimer de la liste
+                if brick.pv == 0:
+                    self.bricks.remove(i)
 
         self.ball.hitbox.compute_collision(self.Racket.hitbox)
 
