@@ -7,10 +7,10 @@ from math import inf
 
 TOLERANCE = 10e-6
 
+
 class Hitbox:
-    """
-    Hitbox
-    """
+    """Rectangle mobile dont la position correspond à son centre."""
+
     def __init__(self, x: float, y: float, width: float, height: float):
         # Taille
         self.width = width
@@ -67,9 +67,9 @@ class Hitbox:
             bool: True si une collision est détectée, False sinon.
         """
         # ================================
-        # DETECTION DE LA COLLISION
+        # DÉTECTION DE LA COLLISION
         # ================================
-        # Chauvechement initial
+        # Chevauchement initial
         if (
             self.x_min < hitbox.x_max
             and self.x_max > hitbox.x_min
@@ -82,7 +82,7 @@ class Hitbox:
         if self.vx == 0 and self.vy == 0:
             return False
 
-        # Calcule des temps d'entrés/sorties sur chaque axes
+        # Calcul des temps d'entrée et de sortie sur chaque axe.
 
         # Axe X
         t_entry_x = 0
@@ -122,11 +122,10 @@ class Hitbox:
             t_entry_y = -inf
             t_exit_y = inf
 
-
         t_entry = max(t_entry_x, t_entry_y)
         t_exit = min(t_exit_x, t_exit_y)
 
-        # Si il n'y a pas collision
+        # S'il n'y a pas de collision.
         will_collide = t_entry <= t_exit and 0 <= t_entry <= 1 and t_exit >= 0
 
         if not will_collide:
@@ -146,14 +145,14 @@ class Hitbox:
 
         if abs(t_entry_x - t_entry_y) <= TOLERANCE:
             # Collision dans un angle
-            new_vx = - self.vx
-            new_vy = - self.vy
+            new_vx = -self.vx
+            new_vy = -self.vy
         elif t_entry_x > t_entry_y:
             # Collision sur l'axe X
-            new_vx = - self.vx
+            new_vx = -self.vx
         else:
             # Collision sur l'axe Y
-            new_vy = - self.vy
+            new_vy = -self.vy
 
         print("x:", new_x, "y:", new_y)
         print("vx:", new_vx, "vy:", new_vy)
