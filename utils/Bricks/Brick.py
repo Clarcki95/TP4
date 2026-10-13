@@ -16,7 +16,7 @@ class Brick(tk.Label):
         self.y_size = 1
         self.posX = posX
         self.posY = posY
-        self.texture = ".Ressources/Bricks/brick.webp"
+        self.texture = "./Ressources/Bricks/brick.webp"
         self.score = 10
 
         self.create()

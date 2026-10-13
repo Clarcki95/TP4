@@ -12,4 +12,4 @@ class Undestructible_Brick(B.Brick):
         super().__init__(posX, posY)
 
         self.pv = -1
-        self.texture = ".Ressources/Bricks/undestructible_brick.webp"
+        self.texture = "./Ressources/Bricks/undestructible_brick.webp"

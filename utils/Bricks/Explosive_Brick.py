@@ -13,7 +13,7 @@ class Explosive_Brick(B.Brick):
 
         self.pv = 4
         self.radius = 1
-        self.texture = ".Ressources/Bricks/explosive_brick.webp"
+        self.texture = "./Ressources/Bricks/explosive_brick.webp"
         self.score = 30
 
     def onDeath(self):
