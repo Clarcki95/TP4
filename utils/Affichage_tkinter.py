@@ -7,7 +7,11 @@ ToDo : finir Keybinds, affichage du jeu, background du menu principal
 
 import tkinter as tk
 
+import numpy as np
+
 from entities.wall import Wall
+from entities.ball import Ball
+
 from utils.list import List
 
 L = 1600
@@ -24,8 +28,24 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
         self.bind("<Delete>", self.close)
 
         # ================
-        # Bordures
+        #
+        # Balle
+        #
 
+        # Vitesse avec angle aléatoire
+        v0 = 10
+        theta = np.random.uniform(-3 * np.pi/4, -np.pi/2)
+
+        vx = v0 * np.cos(theta)
+        vy = v0 * np.sin(theta)
+
+        ball = Ball(self.canvas, L/2, H/2, vx, vy)
+        # ================
+
+        # ================
+        #
+        # Bordures
+        #
         top_wall = Wall(self.canvas, L/2, 1, L, 2, True)
         left_wall = Wall(self.canvas, 1, H/2, 2, H, True)
         right_wall = Wall(self.canvas, L-1, H/2, 2, H, True)
@@ -36,7 +56,6 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
         self.walls.add(left_wall)
         self.walls.add(right_wall)
         self.walls.add(bottom_wall)
-
         # ================
 
         self.create_option_menu()
