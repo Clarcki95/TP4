@@ -1,12 +1,22 @@
 """
 But : Ce fichier contient la classe faisant l'affichage de tkinter et toutes les fonctions qui y sont liées.
-Auteur : Tristan GUIEU
+Auteur : Tristan GUIEU, Nino BELAOUD
 Date : 06/10/26
 ToDo : finir Keybinds, affichage du jeu, background du menu principal
 """
 
 import tkinter as tk
 from utils.racket import Racket
+
+import numpy as np
+
+from entities.wall import Wall
+from entities.ball import Ball
+
+from utils.list import List
+
+L = 1600
+H = 1000
 
 class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre tkinter
     def __init__(self):
@@ -23,11 +33,42 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
         self.bind("<Left>", lambda event : self.Racket.move_left())
         self.bind("<Right>", lambda event : self.Racket.move_right())
 
+        # ================
+        #
+        # Balle
+        #
+
+        # Vitesse avec angle aléatoire
+        v0 = 10
+        theta = np.random.uniform(-3 * np.pi/4, -np.pi/2)
+
+        vx = v0 * np.cos(theta)
+        vy = v0 * np.sin(theta)
+
+        ball = Ball(self.base_canvas, L/2, H/2, vx, vy)
+        # ================
+
+        # ================
+        #
+        # Bordures
+        #
+        top_wall = Wall(self.base_canvas, L/2, 1, L, 2, True)
+        left_wall = Wall(self.base_canvas, 1, H/2, 2, H, True)
+        right_wall = Wall(self.base_canvas, L-1, H/2, 2, H, True)
+        bottom_wall = Wall(self.base_canvas, L/2, H-1, L, 2, False)
+
+        self.walls = List()
+        self.walls.add(top_wall)
+        self.walls.add(left_wall)
+        self.walls.add(right_wall)
+        self.walls.add(bottom_wall)
+        # ================
+
         self.create_option_menu()
         self.create_main_menu()
 
         self.wm_attributes("-transparentcolor", "yellow") #la couleur jaune devient transparente
-    
+
     def toggle_current_menu(self, canva, event=None):
         """
         But : Afficher / Cacher le menu actuel
@@ -42,7 +83,7 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
 
         else:
             canva.pack(fill="both", expand=True)
-    
+
     def close(self, event):
         """
         But : fermer la fenêtre
@@ -65,7 +106,7 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
         OptionsNumber = 5
         LineOutline = 60
 
-        Space = (Height - 2 * Outline) / (OptionsNumber + 1) 
+        Space = (Height - 2 * Outline) / (OptionsNumber + 1)
 
         self.option_menu = tk.Canvas(self.base_canvas, width = Width, height = Height, background="yellow") #création du canva
 
@@ -74,47 +115,47 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
                                           outline = "gray",
                                           width = 3,
                                           fill = "white")
-        self.option_menu.create_rectangle((Outline, Outline), (Width - Outline, Height - Outline), 
-                                          outline = "gray", 
-                                          width = 3, 
+        self.option_menu.create_rectangle((Outline, Outline), (Width - Outline, Height - Outline),
+                                          outline = "gray",
+                                          width = 3,
                                           fill = "black")
 
-        self.option_menu.create_text((Width / 2, Space), 
-                                     text = "Options", 
+        self.option_menu.create_text((Width / 2, Space),
+                                     text = "Options",
                                      font = ("Arial", 50),
                                      fill = "white")
-        Keybind = self.option_menu.create_text((Width / 2, 2 * Space), 
-                                     text = "Keybinds", 
+        Keybind = self.option_menu.create_text((Width / 2, 2 * Space),
+                                     text = "Keybinds",
                                      font = ("Fixedsys", 30),
                                      fill = "white") #on attribue à une varibale pour la lier à une fonction
-        BackToMenu = self.option_menu.create_text((Width / 2, 3 * Space), 
-                                     text = "Back to menu", 
+        BackToMenu = self.option_menu.create_text((Width / 2, 3 * Space),
+                                     text = "Back to menu",
                                      font = ("Fixedsys", 30),
                                      fill = "white")
-        RestartLevel = self.option_menu.create_text((Width / 2, 4 * Space), 
-                                     text = "Restart level", 
+        RestartLevel = self.option_menu.create_text((Width / 2, 4 * Space),
+                                     text = "Restart level",
                                      font = ("Fixedsys", 30),
                                      fill = "white")
-        Continue = self.option_menu.create_text((Width / 2, 5 * Space), 
-                                     text = "Continue", 
+        Continue = self.option_menu.create_text((Width / 2, 5 * Space),
+                                     text = "Continue",
                                      font = ("Fixedsys", 30),
                                      fill = "white")
 
-        self.option_menu.create_line((Outline + LineOutline, (Space + 2 * Space) / 2), 
-                                     (Width - Outline - LineOutline, (Space + 2 * Space) / 2), 
-                                     width = 3, 
+        self.option_menu.create_line((Outline + LineOutline, (Space + 2 * Space) / 2),
+                                     (Width - Outline - LineOutline, (Space + 2 * Space) / 2),
+                                     width = 3,
                                      fill = "white")
-        self.option_menu.create_line((Outline + LineOutline, (2 * Space + 3 * Space) / 2), 
-                                     (Width - Outline - LineOutline, (2 * Space + 3 * Space) / 2), 
-                                     width = 3, 
+        self.option_menu.create_line((Outline + LineOutline, (2 * Space + 3 * Space) / 2),
+                                     (Width - Outline - LineOutline, (2 * Space + 3 * Space) / 2),
+                                     width = 3,
                                      fill = "white")
-        self.option_menu.create_line((Outline + LineOutline, (3 * Space + 4 * Space) / 2), 
-                                     (Width - Outline - LineOutline, (3 * Space + 4 * Space) / 2), 
-                                     width = 3, 
+        self.option_menu.create_line((Outline + LineOutline, (3 * Space + 4 * Space) / 2),
+                                     (Width - Outline - LineOutline, (3 * Space + 4 * Space) / 2),
+                                     width = 3,
                                      fill = "white")
-        self.option_menu.create_line((Outline + LineOutline, (4 * Space + 5 * Space) / 2), 
-                                     (Width - Outline - LineOutline, (4 * Space + 5 * Space) / 2), 
-                                     width = 3, 
+        self.option_menu.create_line((Outline + LineOutline, (4 * Space + 5 * Space) / 2),
+                                     (Width - Outline - LineOutline, (4 * Space + 5 * Space) / 2),
+                                     width = 3,
                                      fill = "white")
 
         #fonctions ajoutant à un évènement une fonction (ici lorsqu'on clique sur le texte, on appelle la fonction)
@@ -174,7 +215,7 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
         Sortie : aucune
         """
         self.toggle_current_menu(self.main_menu)
-        
+
         self.Racket = Racket(self.base_canvas)
         self.base_canvas.tag_raise(self.Racket.rect)
 
