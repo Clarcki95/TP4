@@ -1,4 +1,4 @@
 - Brique spéciale
-- Ecran de fin
-- Keybind
-- Gestion des niveaux
+- Ecran de fin (Tristan)
+- Keybind (Tristan)
+- Gestion des niveaux (Nino)
