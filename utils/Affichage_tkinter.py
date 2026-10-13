@@ -6,6 +6,7 @@ ToDo : finir Keybinds, affichage du jeu, background du menu principal
 """
 
 import tkinter as tk
+from utils.racket import Racket
 
 import numpy as np
 
@@ -24,8 +25,13 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
         self.title("Casse brique")
         self.geometry("1600x1000")
 
+        self.base_canvas = tk.Canvas(self, width = 1600, height = 1000, background="red")
+        self.base_canvas.pack(fill="both", expand=True)
+
         self.bind("<Escape>", lambda event: self.toggle_current_menu(self.option_menu))
-        self.bind("<Delete>", self.close)
+        self.bind("<Delete>", lambda event : self.close)
+        self.bind("<Left>", lambda event : self.Racket.move_left())
+        self.bind("<Right>", lambda event : self.Racket.move_right())
 
         # ================
         #
@@ -39,17 +45,17 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
         vx = v0 * np.cos(theta)
         vy = v0 * np.sin(theta)
 
-        ball = Ball(self.canvas, L/2, H/2, vx, vy)
+        ball = Ball(self.base_canvas, L/2, H/2, vx, vy)
         # ================
 
         # ================
         #
         # Bordures
         #
-        top_wall = Wall(self.canvas, L/2, 1, L, 2, True)
-        left_wall = Wall(self.canvas, 1, H/2, 2, H, True)
-        right_wall = Wall(self.canvas, L-1, H/2, 2, H, True)
-        bottom_wall = Wall(self.canvas, L/2, H-1, L, 2, False)
+        top_wall = Wall(self.base_canvas, L/2, 1, L, 2, True)
+        left_wall = Wall(self.base_canvas, 1, H/2, 2, H, True)
+        right_wall = Wall(self.base_canvas, L-1, H/2, 2, H, True)
+        bottom_wall = Wall(self.base_canvas, L/2, H-1, L, 2, False)
 
         self.walls = List()
         self.walls.add(top_wall)
@@ -66,15 +72,17 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
     def toggle_current_menu(self, canva, event=None):
         """
         But : Afficher / Cacher le menu actuel
-        Entrée : (self, classe), (event, évènement tkinter)
+        Entrée : canva, le menu à afficher ou cacher
         Sortie : aucune
         """
-        if canva.winfo_ismapped() :
-            canva.pack_forget() #cache le canva
-        elif canva == self.main_menu :
-            self.main_menu.pack(fill="both", expand=True) #rend le canva visible, fill l'écran et s'étend
-        else :
-            canva.pack(anchor=tk.CENTER, expand=True) #permet de placer le canva au centre, expansible
+        if canva.winfo_ismapped():
+            canva.pack_forget()
+
+        elif canva == self.option_menu:
+            canva.pack(anchor=tk.CENTER, expand=True)
+
+        else:
+            canva.pack(fill="both", expand=True)
 
     def close(self, event):
         """
@@ -100,7 +108,7 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
 
         Space = (Height - 2 * Outline) / (OptionsNumber + 1)
 
-        self.option_menu = tk.Canvas(self, width = Width, height = Height, background="yellow") #création du canva
+        self.option_menu = tk.Canvas(self.base_canvas, width = Width, height = Height, background="yellow") #création du canva
 
         #création du style du menu
         self.option_menu.create_rectangle((0, 0), (Height, Height),
@@ -171,7 +179,7 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
 
         Space = (Height - 2 * Outline) / (OptionsNumber + 1)
 
-        self.main_menu = tk.Canvas(self, width = Width, height = Height, background="black") #création du canva
+        self.main_menu = tk.Canvas(self.base_canvas, width = Width, height = Height, background="black") #création du canva
 
         self.main_menu.create_text((Width / 2, 50 + Space),
                                      text = "Casse Brique",
@@ -207,6 +215,9 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
         Sortie : aucune
         """
         self.toggle_current_menu(self.main_menu)
+
+        self.Racket = Racket(self.base_canvas)
+        self.base_canvas.tag_raise(self.Racket.rect)
 
     def keybinds(self, event):
         """
