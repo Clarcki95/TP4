@@ -25,11 +25,7 @@ class AffichageTkinter(tk.Tk):
         self.paused = False
 
         self.configure_window()
-        self.create_background()
         self.bind_controls()
-        self.create_bricks()
-        self.create_ball()
-        self.create_walls()
         self.create_option_menu()
         self.create_main_menu()
 
@@ -99,7 +95,7 @@ class AffichageTkinter(tk.Tk):
     def tick(self) -> None:
         """Met à jour le jeu puis programme la prochaine itération."""
         if self.paused:
-            self.base_canvas.after(TICK_DURATION_MS, self.tick)
+            self.tick_id = self.base_canvas.after(TICK_DURATION_MS, self.tick)
             return
 
         # Tick les collisions
@@ -109,7 +105,7 @@ class AffichageTkinter(tk.Tk):
         self.ball.update()
 
         # Relancer le tick
-        self.base_canvas.after(TICK_DURATION_MS, self.tick)
+        self.tick_id = self.base_canvas.after(TICK_DURATION_MS, self.tick)
 
     def tick_collisions(self) -> None:
         """Traite les collisions avec les murs, les briques et la raquette."""
@@ -264,9 +260,27 @@ class AffichageTkinter(tk.Tk):
     def start(self, event: tk.Event) -> None:
         """Masque le menu principal, crée la raquette et lance les ticks."""
         self.toggle_current_menu(self.main_menu)
+
+        self.create_background()
+        self.create_ball()
+        self.create_walls()
+        self.create_bricks()
+
         self.racket = Racket(self.base_canvas)
         self.base_canvas.tag_raise(self.racket.rect)
-        self.base_canvas.after(TICK_DURATION_MS, self.tick)
+        self.tick_id = self.base_canvas.after(TICK_DURATION_MS, self.tick)
+
+    def stop(self) -> None:
+        """Arrête les ticks et détruit la balle, bricks, walls et raquette."""
+        self.base_canvas.after_cancel(self.tick_id)
+        self.base_canvas.delete('all')
+
+        for brick in self.bricks.to_list():
+            brick.destroy()
+
+        self.walls = List()
+        self.bricks = List()
+        self.tick_id = ""
 
     def keybinds(self, event: tk.Event) -> None:
         """Masque le menu courant en attendant l'écran des raccourcis."""
@@ -279,6 +293,7 @@ class AffichageTkinter(tk.Tk):
 
     def back_to_menu(self, event: tk.Event) -> None:
         """Bascule des options vers le menu principal."""
+        self.stop()
         self.toggle_current_menu(self.option_menu)
         self.toggle_current_menu(self.main_menu)
 
