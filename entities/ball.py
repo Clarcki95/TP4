@@ -8,7 +8,7 @@ import tkinter as tk
 from physics.hitbox import Hitbox
 
 # Taille de la balle en px
-BALL_SIZE = 10
+BALL_SIZE = 20
 
 class Ball:
     def __init__(self, canvas: tk.Canvas, start_x: float, start_y: float, start_vx: float, start_vy: float):

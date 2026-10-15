@@ -41,37 +41,6 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
         self.bind("<Left>", lambda event : self.Racket.move_left())
         self.bind("<Right>", lambda event : self.Racket.move_right())
 
-        # ================
-        #
-        # Balle
-        #
-
-        # Vitesse avec angle aléatoire
-        v0 = 10
-        theta = np.random.uniform(-3 * np.pi/4, -np.pi/2)
-
-        vx = v0 * np.cos(theta)
-        vy = v0 * np.sin(theta)
-
-        self.ball = Ball(self.base_canvas, L/2, H/2, vx, vy)
-        # ================
-
-        # ================
-        #
-        # Bordures
-        #
-        top_wall = Wall(self.base_canvas, L/2, 1, L, 2, True)
-        left_wall = Wall(self.base_canvas, 1, H/2, 2, H, True)
-        right_wall = Wall(self.base_canvas, L-1, H/2, 2, H, True)
-        bottom_wall = Wall(self.base_canvas, L/2, H-1, L, 2, False)
-
-        self.walls = List()
-        self.walls.add(top_wall)
-        self.walls.add(left_wall)
-        self.walls.add(right_wall)
-        self.walls.add(bottom_wall)
-        # ================
-
         self.create_option_menu()
         self.create_main_menu()
 
@@ -79,12 +48,12 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
 
     def tick(self):
         if self.paused:
-            self.base_canvas.after(TICK_DURATION_MS, self.tick)
+            self.tick_id = self.base_canvas.after(TICK_DURATION_MS, self.tick)
             return
         self.compute_collisions()
         self.ball.update()
         # print("tick")
-        self.base_canvas.after(TICK_DURATION_MS, self.tick)
+        self.tick_id = self.base_canvas.after(TICK_DURATION_MS, self.tick)
 
     def compute_collisions(self):
         for wall in self.walls.to_list():
@@ -246,7 +215,38 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
 
         self.Racket = Racket(self.base_canvas)
         self.base_canvas.tag_raise(self.Racket.rect)
-        self.base_canvas.after(TICK_DURATION_MS, self.tick)
+        self.tick_id = self.base_canvas.after(TICK_DURATION_MS, self.tick)
+
+        # ================
+        #
+        # Balle
+        #
+
+        # Vitesse avec angle aléatoire
+        v0 = 10
+        theta = np.random.uniform(-3 * np.pi/4, -np.pi/2)
+
+        vx = v0 * np.cos(theta)
+        vy = v0 * np.sin(theta)
+
+        self.ball = Ball(self.base_canvas, L/2, H/2, vx, vy)
+        # ================
+
+        # ================
+        #
+        # Bordures
+        #
+        top_wall = Wall(self.base_canvas, L/2, 1, L, 2, True)
+        left_wall = Wall(self.base_canvas, 1, H/2, 2, H, True)
+        right_wall = Wall(self.base_canvas, L-1, H/2, 2, H, True)
+        bottom_wall = Wall(self.base_canvas, L/2, H-1, L, 2, False)
+
+        self.walls = List()
+        self.walls.add(top_wall)
+        self.walls.add(left_wall)
+        self.walls.add(right_wall)
+        self.walls.add(bottom_wall)
+        # ================
 
     def keybinds(self, event):
         """
@@ -268,8 +268,13 @@ class Affichage_tkinter(tk.Tk): #fait hérité des propriétés d'une fenêtre t
         Entrée : (self, classe), (event, évènement tkinter)
         Sortie : aucune
         """
+        if hasattr(self, "tick_id"):
+            self.base_canvas.after_cancel(self.tick_id)
+            del self.tick_id
+
         self.toggle_current_menu(self.option_menu)
         self.toggle_current_menu(self.main_menu)
+        self.base_canvas.delete('all')
 
     def restartLevel(self, event):
         """
