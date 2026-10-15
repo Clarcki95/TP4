@@ -1,5 +1,13 @@
-import utils.Affichage_tkinter as tkinter
+"""Point d'entrée du casse-briques."""
 
-fenêtre = tkinter.Affichage_tkinter()
+from game.affichage_tkinter import AffichageTkinter
 
-fenêtre.mainloop()
+
+def main() -> None:
+    """Crée la fenêtre et lance la boucle d'évènements Tkinter."""
+    window = AffichageTkinter()
+    window.mainloop()
+
+
+if __name__ == "__main__":
+    main()
