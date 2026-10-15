@@ -13,8 +13,9 @@ py -m pip install numpy Pillow
 py main.py
 ```
 
-Cliquer sur **Start** pour démarrer. Les flèches gauche et droite déplacent la
-raquette ; **Échap** affiche ou masque les options.
+Cliquer sur **Start** pour démarrer. Maintenir les flèches gauche ou droite pour
+accélérer la raquette ; elle freine au relâchement et reste dans le canevas.
+Le déplacement est calculé à chaque tick. **Échap** affiche ou masque les options.
 
 Les dimensions du jeu, la fréquence de mise à jour et le chemin des ressources
 sont regroupés dans `config.py`. Les constantes propres aux entités restent dans
@@ -28,11 +29,12 @@ Depuis la racine du projet :
 .\run_test.bat
 ```
 
-Les quatre suites peuvent également être exécutées séparément :
+Les cinq suites peuvent également être exécutées séparément :
 
 ```powershell
 py -m tests.utils.list_test
 py -m tests.utils.stack_test
 py -m tests.utils.queue_task
 py -m tests.physics.hitbox_test
+py -m tests.racket_test
 ```
