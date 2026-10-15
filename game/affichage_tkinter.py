@@ -144,7 +144,7 @@ class AffichageTkinter(tk.Tk):
                 if brick.pv == 0:
                     self.bricks.remove(index)
 
-        self.ball.hitbox.compute_collision(self.racket.hitbox)
+        self.racket.compute_collision(self.ball)
 
     def toggle_current_menu(self, canvas: tk.Canvas, event=None) -> None:
         """Bascule la visibilité du menu et active la pause pour les options."""
