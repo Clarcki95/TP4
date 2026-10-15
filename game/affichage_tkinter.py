@@ -23,6 +23,7 @@ class AffichageTkinter(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
         self.paused = False
+        self.pressed_keys = set()
 
         self.configure_window()
         self.bind_controls()
@@ -60,8 +61,25 @@ class AffichageTkinter(tk.Tk):
             "<Escape>", lambda event: self.toggle_current_menu(self.option_menu)
         )
         self.bind("<Delete>", lambda event: self.close)
-        self.bind("<Left>", lambda event: self.racket.move_left())
-        self.bind("<Right>", lambda event: self.racket.move_right())
+
+        # Movement
+        self.bind("<KeyPress-Left>", self.press_movement_key)
+        self.bind("<KeyRelease-Left>", self.release_movement_key)
+        self.bind("<KeyPress-Right>", self.press_movement_key)
+        self.bind("<KeyRelease-Right>", self.release_movement_key)
+
+    def press_movement_key(self, event: tk.Event) -> None:
+        """Mémorise une flèche maintenue sans déplacer la raquette."""
+        if not self.paused:
+            self.pressed_keys.add(event.keysym)
+
+    def release_movement_key(self, event: tk.Event) -> None:
+        """Oublie la flèche relâchée, même pendant la pause."""
+        self.pressed_keys.discard(event.keysym)
+
+    def reset_movement(self, event=None) -> None:
+        """Évite les touches bloquées après une pause ou une perte de focus."""
+        self.pressed_keys.clear()
 
     def create_bricks(self) -> None:
         """Crée les cinq briques du niveau."""
@@ -98,6 +116,10 @@ class AffichageTkinter(tk.Tk):
             self.tick_id = self.base_canvas.after(TICK_DURATION_MS, self.tick)
             return
 
+        # Mettre à jour la raquette avant de tester les collisions.
+        direction = int("Right" in self.pressed_keys) - int("Left" in self.pressed_keys)
+        self.racket.update(direction)
+
         # Tick les collisions
         self.tick_collisions()
 
@@ -126,6 +148,7 @@ class AffichageTkinter(tk.Tk):
 
     def toggle_current_menu(self, canvas: tk.Canvas, event=None) -> None:
         """Bascule la visibilité du menu et active la pause pour les options."""
+        self.reset_movement()
         if canvas.winfo_ismapped():
             canvas.pack_forget()
             self.paused = False
@@ -272,6 +295,7 @@ class AffichageTkinter(tk.Tk):
 
     def stop(self) -> None:
         """Arrête les ticks et détruit la balle, bricks, walls et raquette."""
+        self.reset_movement()
         self.base_canvas.after_cancel(self.tick_id)
         self.base_canvas.delete('all')
 
