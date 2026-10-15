@@ -154,9 +154,9 @@ class Hitbox:
             # Collision sur l'axe Y
             new_vy = -self.vy
 
-        print("x:", new_x, "y:", new_y)
-        print("vx:", new_vx, "vy:", new_vy)
-        print("t_entry_x:", t_entry_x, "t_entry_y:", t_entry_y)
+        # print("x:", new_x, "y:", new_y)
+        # print("vx:", new_vx, "vy:", new_vy)
+        # print("t_entry_x:", t_entry_x, "t_entry_y:", t_entry_y)
 
         # Applique la nouvelle position et vitesse
         self.set_pos(new_x, new_y)

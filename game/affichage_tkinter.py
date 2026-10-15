@@ -15,6 +15,8 @@ from entities.bricks.brick import Brick
 from entities.racket import Racket
 from entities.wall import Wall
 from utils.list import List
+from game.menus.option_menu import Option_menu
+from game.menus.main_menu import Main_menu
 
 
 class AffichageTkinter(tk.Tk):
@@ -27,8 +29,19 @@ class AffichageTkinter(tk.Tk):
 
         self.configure_window()
         self.bind_controls()
-        self.create_option_menu()
-        self.create_main_menu()
+
+        self.main_menu = Main_menu(self.base_canvas, 
+                                     GAME_WIDTH, 
+                                     GAME_HEIGHT, 
+                                     self.start, 
+                                     self.keybinds, 
+                                     self.close)
+        
+        self.option_menu = Option_menu(self.base_canvas, 
+                                       self.keybinds, 
+                                       self.back_to_menu, 
+                                       self.restart_level,
+                                       self.tick_pause)
 
         # Le jaune sert de couleur transparente aux menus.
         self.wm_attributes("-transparentcolor", "yellow")
@@ -58,7 +71,7 @@ class AffichageTkinter(tk.Tk):
     def bind_controls(self) -> None:
         """Associe les touches aux actions du jeu."""
         self.bind(
-            "<Escape>", lambda event: self.toggle_current_menu(self.option_menu)
+            "<Escape>", lambda event: self.option_menu.toggle_visibility()
         )
         self.bind("<Delete>", lambda event: self.close)
 
@@ -146,15 +159,15 @@ class AffichageTkinter(tk.Tk):
 
         self.racket.compute_collision(self.ball)
 
+    def tick_pause(self, state) -> None:
+        self.paused = state
+
     def toggle_current_menu(self, canvas: tk.Canvas, event=None) -> None:
         """Bascule la visibilité du menu et active la pause pour les options."""
         self.reset_movement()
         if canvas.winfo_ismapped():
             canvas.pack_forget()
-            self.paused = False
-        elif canvas == self.option_menu:
-            self.paused = True
-            canvas.pack(anchor=tk.CENTER, expand=True)
+            self.tick_pause(False)
         else:
             canvas.pack(fill="both", expand=True)
 
@@ -162,127 +175,9 @@ class AffichageTkinter(tk.Tk):
         """Ferme la fenêtre du jeu."""
         self.destroy()
 
-    def create_option_menu(self) -> None:
-        """Crée le menu des options et associe ses actions."""
-        width = 400
-        height = 600
-        outline = 15
-        options_number = 5
-        line_outline = 60
-        space = (height - 2 * outline) / (options_number + 1)
-
-        self.option_menu = tk.Canvas(
-            self.base_canvas, width=width, height=height, background="yellow"
-        )
-        self.option_menu.create_rectangle(
-            (0, 0), (height, height), outline="gray", width=3, fill="white"
-        )
-        self.option_menu.create_rectangle(
-            (outline, outline),
-            (width - outline, height - outline),
-            outline="gray",
-            width=3,
-            fill="black",
-        )
-        self.option_menu.create_text(
-            (width / 2, space),
-            text="Options",
-            font=("Arial", 50),
-            fill="white",
-        )
-        keybind = self.option_menu.create_text(
-            (width / 2, 2 * space),
-            text="Keybinds",
-            font=("Fixedsys", 30),
-            fill="white",
-        )
-        back_to_menu = self.option_menu.create_text(
-            (width / 2, 3 * space),
-            text="Back to menu",
-            font=("Fixedsys", 30),
-            fill="white",
-        )
-        restart_level = self.option_menu.create_text(
-            (width / 2, 4 * space),
-            text="Restart level",
-            font=("Fixedsys", 30),
-            fill="white",
-        )
-        continue_button = self.option_menu.create_text(
-            (width / 2, 5 * space),
-            text="Continue",
-            font=("Fixedsys", 30),
-            fill="white",
-        )
-
-        for index in range(1, options_number):
-            separator_y = (index * space + (index + 1) * space) / 2
-            self.option_menu.create_line(
-                (outline + line_outline, separator_y),
-                (width - outline - line_outline, separator_y),
-                width=3,
-                fill="white",
-            )
-
-        self.option_menu.tag_bind(keybind, "<Button-1>", self.keybinds)
-        self.option_menu.tag_bind(back_to_menu, "<Button-1>", self.back_to_menu)
-        self.option_menu.tag_bind(restart_level, "<Button-1>", self.restart_level)
-        self.option_menu.tag_bind(
-            continue_button,
-            "<Button-1>",
-            lambda event: self.toggle_current_menu(self.option_menu),
-        )
-
-    def create_main_menu(self) -> None:
-        """Crée et affiche le menu principal."""
-        width = GAME_WIDTH
-        height = GAME_HEIGHT
-        outline = height / 6
-        options_number = 5
-        space = (height - 2 * outline) / (options_number + 1)
-
-        self.main_menu = tk.Canvas(
-            self.base_canvas, width=width, height=height, background="black"
-        )
-        self.main_menu.create_text(
-            (width / 2, 50 + space),
-            text="Casse Brique",
-            font=("Fixedsys", 150),
-            fill="green",
-        )
-        self.main_menu.create_text(
-            (width / 2, outline + 2 * space),
-            text="Main menu",
-            font=("Arial", 70),
-            fill="green",
-        )
-        start_button = self.main_menu.create_text(
-            (width / 2, outline + 3 * space),
-            text="Start",
-            font=("Fixedsys", 30),
-            fill="green",
-        )
-        keybind = self.main_menu.create_text(
-            (width / 2, outline + 4 * space),
-            text="Keybinds",
-            font=("Fixedsys", 30),
-            fill="green",
-        )
-        exit_button = self.main_menu.create_text(
-            (width / 2, outline + 5 * space),
-            text="Exit",
-            font=("Fixedsys", 30),
-            fill="green",
-        )
-
-        self.main_menu.tag_bind(start_button, "<Button-1>", self.start)
-        self.main_menu.tag_bind(keybind, "<Button-1>", self.keybinds)
-        self.main_menu.tag_bind(exit_button, "<Button-1>", self.close)
-        self.toggle_current_menu(self.main_menu)
-
     def start(self, event: tk.Event) -> None:
         """Masque le menu principal, crée la raquette et lance les ticks."""
-        self.toggle_current_menu(self.main_menu)
+        self.main_menu.toggle_visibility()
 
         self.create_background()
         self.create_ball()
@@ -318,10 +213,10 @@ class AffichageTkinter(tk.Tk):
     def back_to_menu(self, event: tk.Event) -> None:
         """Bascule des options vers le menu principal."""
         self.stop()
-        self.toggle_current_menu(self.option_menu)
-        self.toggle_current_menu(self.main_menu)
+        self.option_menu.toggle_visibility()
+        self.main_menu.toggle_visibility()
 
     def restart_level(self, event: tk.Event) -> None:
         """Bascule la visibilité du menu des options."""
         # TODO : réinitialiser le niveau.
-        self.toggle_current_menu(self.option_menu)
+        self.option_menu.toggle_visibility()
