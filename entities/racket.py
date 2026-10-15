@@ -5,7 +5,9 @@ Auteur: Tristan GUIEU
 """
 
 import tkinter as tk
+from math import hypot, sqrt
 
+from entities.ball import Ball
 from physics.hitbox import Hitbox
 
 # Vitesse maximale (px/tick)
@@ -14,6 +16,10 @@ VELOCITY_MAX = 17
 ACCELERATION = 8
 # Décélération au relâchement (px/tick^2)
 FRICTION = 5
+# Part de la vitesse de la raquette transmise horizontalement à la balle.
+VELOCITY_TRANSFER = 0.35
+# Garder une composante verticale suffisante pour que la balle remonte.
+MAX_HORIZONTAL_RATIO = 0.9
 
 WIDTH = 150
 HEIGHT = 30
@@ -69,6 +75,21 @@ class Racket:
 
         # Synchroniser la hitbox
         self.sync_hitbox()
+
+    def compute_collision(self, ball: Ball) -> bool:
+        """Fait rebondir la balle et dévie sa trajectoire selon notre vitesse."""
+        hitbox = ball.hitbox
+        incoming_vy = hitbox.vy
+        will_collide = hitbox.compute_collision(self.hitbox)
+
+        # Seuls les impacts descendants sur le dessus reçoivent cet effet.
+        if will_collide and incoming_vy > 0 and hitbox.vy < 0 and self.velocity:
+            speed = hypot(hitbox.vx, hitbox.vy)
+            max_vx = speed * MAX_HORIZONTAL_RATIO
+            vx = max(-max_vx, min(hitbox.vx + self.velocity * VELOCITY_TRANSFER, max_vx))
+            hitbox.set_velocity(vx, -sqrt(speed ** 2 - vx ** 2))
+
+        return will_collide
 
     def sync_hitbox(self) -> None:
         """Recentre la hitbox sur le rectangle après un déplacement."""
