@@ -2,7 +2,7 @@
 import tkinter as tk
 
 class Keybinds_menu(tk.Canvas):
-    def __init__(self, canva, assigned_keys, change_key):
+    def __init__(self, canva, assigned_keys, change_key, changing_waiting_for_key):
         self.width = 400
         self.height = 600
 
@@ -10,6 +10,7 @@ class Keybinds_menu(tk.Canvas):
 
         self.assigned_keys = assigned_keys
         self.change_key = change_key
+        self.changing_waiting_for_key = changing_waiting_for_key
         self.waiting_for_key = None
         
         self.width = 400
@@ -118,6 +119,7 @@ class Keybinds_menu(tk.Canvas):
     def get_key(self, key):
         """Attend que l'utilisateur appuie sur une nouvelle touche."""
         self.waiting_for_key = key
+        self.changing_waiting_for_key(True)
 
         # Attend la prochaine touche pressée sur la fenêtre principale.
         self.winfo_toplevel().bind(
@@ -142,6 +144,7 @@ class Keybinds_menu(tk.Canvas):
         # Informe la classe principale du changement.
         self.change_key(self.assigned_keys)
         self.waiting_for_key = None
+        self.changing_waiting_for_key(False)
 
         # Retire la capture temporaire du clavier.
         self.winfo_toplevel().unbind("<KeyPress>")

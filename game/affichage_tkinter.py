@@ -28,6 +28,7 @@ class AffichageTkinter(tk.Tk):
         super().__init__()
         self.paused = False
         self.game_on = False
+        self.waiting_for_key = False
         self.pressed_keys = set()
 
         self.assigned_keys = ASSIGNED_KEYS
@@ -36,7 +37,10 @@ class AffichageTkinter(tk.Tk):
         self.configure_window()
         self.bind_controls()
 
-        self.keybinds_menu = Keybinds_menu(self.base_canvas, self.assigned_keys, self.change_key)
+        self.keybinds_menu = Keybinds_menu(self.base_canvas, 
+                                           self.assigned_keys, 
+                                           self.change_key,
+                                           self.changing_waiting_for_key)
 
         self.main_menu = Main_menu(self.base_canvas, 
                                      GAME_WIDTH, 
@@ -91,9 +95,6 @@ class AffichageTkinter(tk.Tk):
         self.bind(f"<KeyRelease-{self.assigned_keys["right"]}>", self.release_movement_key)
 
     def update_binds(self):
-        print("Anciennes touches :", self.previous_assigned_keys)
-        print("Nouvelles touches :", self.assigned_keys)
-
         for key in self.previous_assigned_keys.values():
             for sequence in (
                 f"<{key}>",
@@ -119,6 +120,9 @@ class AffichageTkinter(tk.Tk):
         self.pressed_keys.discard(event.keysym)
 
     def choose_menu_toggling(self):
+        if self.waiting_for_key :
+            return
+
         if self.keybinds_menu.is_visible():
             self.keybinds_menu.toggle_visibility()
         elif self.game_on :
@@ -197,8 +201,14 @@ class AffichageTkinter(tk.Tk):
     def tick_pause(self, state) -> None:
         self.paused = state
 
+    def changing_waiting_for_key(self, new_state):
+        self.waiting_for_key = new_state
+
     def close(self, event: tk.Event = None) -> None:
         """Ferme la fenêtre du jeu."""
+        if self.waiting_for_key :
+            return
+
         self.destroy()
 
     def start(self, event: tk.Event) -> None:
