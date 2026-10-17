@@ -79,7 +79,7 @@ class Option_menu(tk.Canvas):
                 fill="white",
             )
 
-        self.tag_bind(keybind, "<Button-1>", self.keybinds)
+        self.tag_bind(keybind, "<Button-1>", lambda event: self.keybinds(self, event))
         self.tag_bind(back_to_menu, "<Button-1>", self.back_to_menu)
         self.tag_bind(restart_level, "<Button-1>", self.restart_level)
         self.tag_bind(
@@ -91,10 +91,12 @@ class Option_menu(tk.Canvas):
     def is_visible(self):
         return self.winfo_ismapped()
 
-    def toggle_visibility(self):
+    def toggle_visibility(self, unpause = True):
         if self.is_visible() :
             self.pack_forget()
-            self.paused(False)
+            if unpause :
+                self.paused(False)
         else :
             self.pack(anchor=tk.CENTER, expand=True)
+            tk.Misc.tkraise(self)
             self.paused(True)

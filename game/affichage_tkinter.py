@@ -9,14 +9,16 @@ import tkinter as tk
 
 import numpy as np
 
-from config import GAME_HEIGHT, GAME_WIDTH, RESOURCES_DIR, TICK_DURATION_MS
+from config import GAME_HEIGHT, GAME_WIDTH, RESOURCES_DIR, TICK_DURATION_MS, ASSIGNED_KEYS
 from entities.ball import Ball
 from entities.bricks.brick import Brick
 from entities.racket import Racket
 from entities.wall import Wall
 from utils.list import List
+
 from game.menus.option_menu import Option_menu
 from game.menus.main_menu import Main_menu
+from game.menus.keybinds_menu import Keybinds_menu
 
 
 class AffichageTkinter(tk.Tk):
@@ -25,10 +27,16 @@ class AffichageTkinter(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
         self.paused = False
+        self.game_on = False
         self.pressed_keys = set()
+
+        self.assigned_keys = ASSIGNED_KEYS
+        self.previous_assigned_keys = self.assigned_keys.copy()
 
         self.configure_window()
         self.bind_controls()
+
+        self.keybinds_menu = Keybinds_menu(self.base_canvas, self.assigned_keys, self.change_key)
 
         self.main_menu = Main_menu(self.base_canvas, 
                                      GAME_WIDTH, 
@@ -71,15 +79,35 @@ class AffichageTkinter(tk.Tk):
     def bind_controls(self) -> None:
         """Associe les touches aux actions du jeu."""
         self.bind(
-            "<Escape>", lambda event: self.option_menu.toggle_visibility()
+            f"<{self.assigned_keys["toggle_menu"]}>", 
+            lambda event: self.choose_menu_toggling()
         )
-        self.bind("<Delete>", lambda event: self.close)
+        self.bind(f"<{self.assigned_keys["exit_game"]}>", lambda event: self.close())
 
         # Movement
-        self.bind("<KeyPress-Left>", self.press_movement_key)
-        self.bind("<KeyRelease-Left>", self.release_movement_key)
-        self.bind("<KeyPress-Right>", self.press_movement_key)
-        self.bind("<KeyRelease-Right>", self.release_movement_key)
+        self.bind(f"<KeyPress-{self.assigned_keys["left"]}>", self.press_movement_key)
+        self.bind(f"<KeyRelease-{self.assigned_keys["left"]}>", self.release_movement_key)
+        self.bind(f"<KeyPress-{self.assigned_keys["right"]}>", self.press_movement_key)
+        self.bind(f"<KeyRelease-{self.assigned_keys["right"]}>", self.release_movement_key)
+
+    def update_binds(self):
+        print("Anciennes touches :", self.previous_assigned_keys)
+        print("Nouvelles touches :", self.assigned_keys)
+
+        for key in self.previous_assigned_keys.values():
+            for sequence in (
+                f"<{key}>",
+                f"<KeyPress-{key}>",
+                f"<KeyRelease-{key}>",
+            ):
+                self.unbind(sequence)
+
+        self.previous_assigned_keys = self.assigned_keys.copy()
+        self.bind_controls()
+
+    def change_key(self, assigned_key_dico):
+        self.assigned_keys = assigned_key_dico
+        self.update_binds()
 
     def press_movement_key(self, event: tk.Event) -> None:
         """Mémorise une flèche maintenue sans déplacer la raquette."""
@@ -89,6 +117,13 @@ class AffichageTkinter(tk.Tk):
     def release_movement_key(self, event: tk.Event) -> None:
         """Oublie la flèche relâchée, même pendant la pause."""
         self.pressed_keys.discard(event.keysym)
+
+    def choose_menu_toggling(self):
+        if self.keybinds_menu.is_visible():
+            self.keybinds_menu.toggle_visibility()
+        elif self.game_on :
+            self.option_menu.toggle_visibility()
+
 
     def reset_movement(self, event=None) -> None:
         """Évite les touches bloquées après une pause ou une perte de focus."""
@@ -130,7 +165,7 @@ class AffichageTkinter(tk.Tk):
             return
 
         # Mettre à jour la raquette avant de tester les collisions.
-        direction = int("Right" in self.pressed_keys) - int("Left" in self.pressed_keys)
+        direction = int(self.assigned_keys["right"] in self.pressed_keys) - int(self.assigned_keys["left"] in self.pressed_keys)
         self.racket.update(direction)
 
         # Tick les collisions
@@ -162,16 +197,7 @@ class AffichageTkinter(tk.Tk):
     def tick_pause(self, state) -> None:
         self.paused = state
 
-    def toggle_current_menu(self, canvas: tk.Canvas, event=None) -> None:
-        """Bascule la visibilité du menu et active la pause pour les options."""
-        self.reset_movement()
-        if canvas.winfo_ismapped():
-            canvas.pack_forget()
-            self.tick_pause(False)
-        else:
-            canvas.pack(fill="both", expand=True)
-
-    def close(self, event: tk.Event) -> None:
+    def close(self, event: tk.Event = None) -> None:
         """Ferme la fenêtre du jeu."""
         self.destroy()
 
@@ -188,8 +214,12 @@ class AffichageTkinter(tk.Tk):
         self.base_canvas.tag_raise(self.racket.rect)
         self.tick_id = self.base_canvas.after(TICK_DURATION_MS, self.tick)
 
+        self.game_on = True
+
     def stop(self) -> None:
         """Arrête les ticks et détruit la balle, bricks, walls et raquette."""
+        self.game_on = False
+
         self.reset_movement()
         self.base_canvas.after_cancel(self.tick_id)
         self.base_canvas.delete('all')
@@ -201,14 +231,10 @@ class AffichageTkinter(tk.Tk):
         self.bricks = List()
         self.tick_id = ""
 
-    def keybinds(self, event: tk.Event) -> None:
+    def keybinds(self, last_menu, event: tk.Event) -> None:
         """Masque le menu courant en attendant l'écran des raccourcis."""
         # TODO : permettre l'assignation des touches.
-        if self.option_menu.winfo_ismapped():
-            current_canvas = self.option_menu
-        else:
-            current_canvas = self.main_menu
-        self.toggle_current_menu(current_canvas)
+        self.keybinds_menu.toggle_visibility(last_menu)
 
     def back_to_menu(self, event: tk.Event) -> None:
         """Bascule des options vers le menu principal."""

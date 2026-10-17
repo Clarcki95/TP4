@@ -50,14 +50,14 @@ class Main_menu(tk.Canvas):
         )
 
         self.tag_bind(start_button, "<Button-1>", self.start)
-        self.tag_bind(keybind, "<Button-1>", self.keybinds)
+        self.tag_bind(keybind, "<Button-1>", lambda event : self.keybinds(None, event))
         self.tag_bind(exit_button, "<Button-1>", self.close)
         self.toggle_visibility()
 
     def is_visible(self):
         return self.winfo_ismapped()
 
-    def toggle_visibility(self):
+    def toggle_visibility(self, trash = None):
         if self.is_visible() :
             self.pack_forget()
         else :
