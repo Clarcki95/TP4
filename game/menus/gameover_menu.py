@@ -44,7 +44,7 @@ class Gameover_menu(tk.Canvas):
         keybind = self.create_text(
             (self.width / 2, 2 * self.space),
             text="OVER",
-            font=("Fixedsys", 30),
+            font=("Fixedsys", 50),
             fill="red",
         )
 
@@ -69,7 +69,7 @@ class Gameover_menu(tk.Canvas):
             fill="white",
         )
 
-        for index in range(1, self.options_number):
+        for index in range(2, self.options_number):
             separator_y = (index * self.space + (index + 1) * self.space) / 2
             self.create_line(
                 (self.outline + self.line_outline, separator_y),
