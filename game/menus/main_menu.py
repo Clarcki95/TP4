@@ -57,8 +57,9 @@ class Main_menu(tk.Canvas):
     def is_visible(self):
         return self.winfo_ismapped()
 
-    def toggle_visibility(self, trash = None):
-        if self.is_visible() :
-            self.pack_forget()
-        else :
-            self.pack(fill="both", expand=True)
+    def toggle_visibility(self, trash=None):
+        if self.is_visible():
+            self.place_forget()
+        else:
+            self.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+            tk.Misc.tkraise(self)

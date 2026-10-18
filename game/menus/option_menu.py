@@ -91,12 +91,13 @@ class Option_menu(tk.Canvas):
     def is_visible(self):
         return self.winfo_ismapped()
 
-    def toggle_visibility(self, unpause = True):
-        if self.is_visible() :
-            self.pack_forget()
-            if unpause :
+    def toggle_visibility(self, unpause=True):
+        if self.is_visible():
+            self.place_forget()
+
+            if unpause:
                 self.paused(False)
-        else :
-            self.pack(anchor=tk.CENTER, expand=True)
+        else:
+            self.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
             tk.Misc.tkraise(self)
             self.paused(True)

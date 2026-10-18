@@ -158,7 +158,7 @@ class Keybinds_menu(tk.Canvas):
 
     def toggle_visibility(self, last_menu=None):
         if self.is_visible():
-            self.place_forget()
+            self.pack_forget()
 
             if self.last_menu != None:
                 self.last_menu.toggle_visibility()
@@ -169,5 +169,5 @@ class Keybinds_menu(tk.Canvas):
             if self.last_menu != None:
                 self.last_menu.toggle_visibility(False)
 
-            self.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+            self.pack(anchor=tk.CENTER, expand=True)
             tk.Misc.tkraise(self)

@@ -19,6 +19,7 @@ from utils.list import List
 from game.menus.option_menu import Option_menu
 from game.menus.main_menu import Main_menu
 from game.menus.keybinds_menu import Keybinds_menu
+from game.menus.gameover_menu import Gameover_menu
 
 
 class AffichageTkinter(tk.Tk):
@@ -30,30 +31,15 @@ class AffichageTkinter(tk.Tk):
         self.game_on = False
         self.waiting_for_key = False
         self.pressed_keys = set()
+        self.tick_id = None
+        self.protocol("WM_DELETE_WINDOW", self.close)
 
         self.assigned_keys = ASSIGNED_KEYS
         self.previous_assigned_keys = self.assigned_keys.copy()
 
         self.configure_window()
         self.bind_controls()
-
-        self.keybinds_menu = Keybinds_menu(self.base_canvas, 
-                                           self.assigned_keys, 
-                                           self.change_key,
-                                           self.changing_waiting_for_key)
-
-        self.main_menu = Main_menu(self.base_canvas, 
-                                     GAME_WIDTH, 
-                                     GAME_HEIGHT, 
-                                     self.start, 
-                                     self.keybinds, 
-                                     self.close)
-        
-        self.option_menu = Option_menu(self.base_canvas, 
-                                       self.keybinds, 
-                                       self.back_to_menu, 
-                                       self.restart_level,
-                                       self.tick_pause)
+        self.create_menus()
 
         # Le jaune sert de couleur transparente aux menus.
         self.wm_attributes("-transparentcolor", "yellow")
@@ -79,6 +65,30 @@ class AffichageTkinter(tk.Tk):
         self.base_canvas.create_image(
             0, 0, image=self.game_background, anchor=tk.NW
         )
+
+    def create_menus(self) :
+        self.keybinds_menu = Keybinds_menu(self.base_canvas, 
+                                           self.assigned_keys, 
+                                           self.change_key,
+                                           self.changing_waiting_for_key)
+
+        self.main_menu = Main_menu(self.base_canvas, 
+                                   GAME_WIDTH, 
+                                   GAME_HEIGHT, 
+                                   self.start, 
+                                   self.keybinds, 
+                                   self.close)
+        
+        self.option_menu = Option_menu(self.base_canvas, 
+                                       self.keybinds, 
+                                       self.back_to_menu, 
+                                       self.restart_level,
+                                       self.tick_pause)
+
+        self.gameover_menu = Gameover_menu(self.base_canvas, 
+                                           self.back_to_menu, 
+                                           self.restart_level, 
+                                           self.close)
 
     def bind_controls(self) -> None:
         """Associe les touches aux actions du jeu."""
@@ -120,13 +130,26 @@ class AffichageTkinter(tk.Tk):
         self.pressed_keys.discard(event.keysym)
 
     def choose_menu_toggling(self):
-        if self.waiting_for_key :
+        if self.waiting_for_key:
             return
 
         if self.keybinds_menu.is_visible():
             self.keybinds_menu.toggle_visibility()
-        elif self.game_on :
+
+        elif self.option_menu.is_visible():
             self.option_menu.toggle_visibility()
+
+        elif self.gameover_menu.is_visible():
+            self.gameover_menu.toggle_visibility()
+
+        elif self.main_menu.is_visible():
+            self.main_menu.toggle_visibility()
+
+        elif self.game_on:
+            self.option_menu.toggle_visibility()
+
+        else:
+            self.main_menu.toggle_visibility()
 
 
     def reset_movement(self, event=None) -> None:
@@ -187,7 +210,7 @@ class AffichageTkinter(tk.Tk):
             will_collide = wall.compute_collision(self.ball)
             if will_collide and not wall.is_bouncy():
                 # TODO : gérer la fin de partie.
-                print("Perdu")
+                self.game_over()
 
         for index, brick in enumerate(self.bricks.to_list()):
             will_collide = brick.compute_collision(self.ball)
@@ -204,16 +227,37 @@ class AffichageTkinter(tk.Tk):
     def changing_waiting_for_key(self, new_state):
         self.waiting_for_key = new_state
 
+    def game_over(self):
+        self.paused = True
+        self.game_on = False
+        self.gameover_menu.toggle_visibility()
+
     def close(self, event: tk.Event = None) -> None:
-        """Ferme la fenêtre du jeu."""
-        if self.waiting_for_key :
+        """Arrête la boucle principale pour fermer proprement le jeu."""
+        if self.waiting_for_key:
             return
 
-        self.destroy()
+        if self.tick_id:
+            try:
+                self.after_cancel(self.tick_id)
+            except tk.TclError:
+                pass
+            self.tick_id = None
 
-    def start(self, event: tk.Event) -> None:
-        """Masque le menu principal, crée la raquette et lance les ticks."""
-        self.main_menu.toggle_visibility()
+        self.quit()
+
+    def start(self, event: tk.Event = None) -> None:
+        """Démarre une nouvelle partie."""
+
+        # Masquer explicitement les menus.
+        self.main_menu.place_forget()
+        self.option_menu.place_forget()
+        self.gameover_menu.place_forget()
+        self.keybinds_menu.place_forget()
+
+        self.reset_movement()
+        self.paused = False
+        self.game_on = True
 
         self.create_background()
         self.create_ball()
@@ -222,24 +266,34 @@ class AffichageTkinter(tk.Tk):
 
         self.racket = Racket(self.base_canvas)
         self.base_canvas.tag_raise(self.racket.rect)
-        self.tick_id = self.base_canvas.after(TICK_DURATION_MS, self.tick)
 
-        self.game_on = True
+        self.tick_id = self.base_canvas.after(
+            TICK_DURATION_MS,
+            self.tick
+        )
 
     def stop(self) -> None:
-        """Arrête les ticks et détruit la balle, bricks, walls et raquette."""
-        self.game_on = False
+        """Arrête les ticks et détruit les éléments du jeu."""
 
+        self.game_on = False
+        self.paused = True
         self.reset_movement()
-        self.base_canvas.after_cancel(self.tick_id)
-        self.base_canvas.delete('all')
+
+        if self.tick_id:
+            try:
+                self.base_canvas.after_cancel(self.tick_id)
+            except tk.TclError:
+                pass
+
+            self.tick_id = None
+
+        self.base_canvas.delete("all")
 
         for brick in self.bricks.to_list():
             brick.destroy()
 
         self.walls = List()
         self.bricks = List()
-        self.tick_id = ""
 
     def keybinds(self, last_menu, event: tk.Event) -> None:
         """Masque le menu courant en attendant l'écran des raccourcis."""
@@ -249,10 +303,10 @@ class AffichageTkinter(tk.Tk):
     def back_to_menu(self, event: tk.Event) -> None:
         """Bascule des options vers le menu principal."""
         self.stop()
-        self.option_menu.toggle_visibility()
+        self.choose_menu_toggling()
         self.main_menu.toggle_visibility()
 
-    def restart_level(self, event: tk.Event) -> None:
-        """Bascule la visibilité du menu des options."""
-        # TODO : réinitialiser le niveau.
-        self.option_menu.toggle_visibility()
+    def restart_level(self, event: tk.Event = None) -> None:
+        """Nettoie la partie actuelle puis en démarre une nouvelle."""
+        self.stop()
+        self.start()
