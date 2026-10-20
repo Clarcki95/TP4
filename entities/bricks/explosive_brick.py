@@ -20,4 +20,5 @@ class ExplosiveBrick(Brick):
         self.score = 30
 
     def on_death(self) -> int:
+        super().sound_manager.sound("explosion")
         return super().on_death()

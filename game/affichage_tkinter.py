@@ -253,6 +253,7 @@ class AffichageTkinter(tk.Tk):
         self.paused = True
         self.game_on = False
         self.gameover_menu.toggle_visibility()
+        self.sound_manager.sound("defeat")
 
     def close(self, event: tk.Event | None = None) -> None:
         """Arrête la boucle principale pour fermer proprement le jeu."""

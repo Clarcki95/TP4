@@ -9,7 +9,8 @@ class Sound_manager():
                        "bounce": "bounce",
                        "death": "death",
                        "victory": "",
-                       "defeat": ""}
+                       "defeat": "defeat",
+                       "explosion": "explosion"}
 
     def sound(self, sound_name):
         filename = self.sounds.get(sound_name)
