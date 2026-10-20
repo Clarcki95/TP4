@@ -19,10 +19,10 @@ BRICK_HEIGHT = 50
 class Brick(tk.Label):
     """Brique affichée dans un label et associée à une hitbox."""
 
-    def __init__(self, pos_x, pos_y, master=None) -> None:
+    def __init__(self, pos_x, pos_y, pv = 1, master=None) -> None:
         super().__init__(master, borderwidth=0, highlightthickness=0)
 
-        self.pv = 1
+        self.pv = pv
         self.texture = RESOURCES_DIR / "bricks" / "brick.webp"
         self.score = 10
 
