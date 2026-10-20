@@ -44,7 +44,7 @@ class Brick(tk.Label):
         """Charge la texture et place la brique au centre de sa hitbox."""
         with Image.open(self.texture) as image:
             self.image = ImageTk.PhotoImage(
-                image.resize((self.hitbox.width, self.hitbox.height)), master=self
+                image.resize((int(self.hitbox.width), int(self.hitbox.height))), master=self
             )
         self.config(image=self.image)
         self.place(x=self.hitbox.x, y=self.hitbox.y, anchor=tk.CENTER)

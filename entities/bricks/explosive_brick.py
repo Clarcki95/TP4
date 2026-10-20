@@ -11,8 +11,8 @@ from entities.bricks.brick import Brick
 class ExplosiveBrick(Brick):
     """Brique explosive dont l'effet reste à implémenter."""
 
-    def __init__(self, pos_x, pos_y) -> None:
-        super().__init__(pos_x, pos_y)
+    def __init__(self, pos_x, pos_y, sound_manager) -> None:
+        super().__init__(pos_x, pos_y, sound_manager)
 
         self.pv = 4
         self.radius = 1

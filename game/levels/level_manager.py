@@ -28,15 +28,26 @@ class LevelManager:
         self.levels = List()
 
         # ========== Niveau 1 ==========
-        level_1_bricks = List()
+        level_1_factories = List()
 
         for pos_x in (400, 800, 600, 1000, 1200):
-            # partial mémorise les arguments sans construire le widget immédiatement.
-            level_1_bricks.add(partial(Brick, pos_x, 150, self.sound_manager, 1, self.canvas))
+            level_1_factories.add(
+                partial(Brick, pos_x, 150, self.sound_manager, 1, self.canvas)
+            )
 
-        level_1 = Level("Niveau 1", level_1_bricks)
+        level_1 = Level("Niveau 1", level_1_factories)
 
         self.levels.add(level_1)
+        # ===============================
+
+        # ========== Niveau 2 ==========
+        level_2_factories = List()
+        for pos_y in (150, 225):
+            for pos_x in (400, 600, 800, 1000, 1200):
+                level_2_factories.add(
+                    partial(Brick, pos_x, pos_y, self.sound_manager, 1, self.canvas)
+                )
+        self.levels.add(Level("Niveau 2", level_2_factories))
         # ===============================
 
         self.select_level(0)
@@ -52,6 +63,11 @@ class LevelManager:
             IndexError: Si l'index ne correspond à aucun niveau.
         """
         self.selected_level = self.levels.get(level_id)
+        self.selected_level_id = level_id
+
+    def has_next_level(self) -> bool:
+        """Indique si un niveau suit celui qui est sélectionné."""
+        return self.selected_level_id + 1 < self.levels.size
 
     def get_selected_level(self) -> Level:
         """

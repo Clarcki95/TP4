@@ -19,6 +19,12 @@ Le déplacement est calculé à chaque tick. Au rebond, la balle est déviée da
 sens du déplacement de la raquette, proportionnellement à sa vitesse, sans changer
 sa vitesse totale. **Échap** affiche ou masque les options.
 
+Lorsque toutes les briques cassables ont été détruites, le jeu se met en pause
+et affiche **VICTOIRE**, le niveau réussi et le temps de jeu (hors pauses).
+Le menu propose **Next level**, **Restart level** et **Back to menu**.
+Au dernier niveau, le choix du niveau suivant est désactivé.
+Le chronomètre repart à zéro à chaque lancement ou redémarrage d'un niveau.
+
 Les dimensions du jeu, la fréquence de mise à jour et le chemin des ressources
 sont regroupés dans `config.py`. Les constantes propres aux entités restent dans
 leurs modules.
@@ -31,12 +37,9 @@ Depuis la racine du projet :
 .\run_test.bat
 ```
 
-Les cinq suites peuvent également être exécutées séparément :
-
 ```powershell
 py -m tests.utils.list_test
 py -m tests.utils.stack_test
 py -m tests.utils.queue_task
 py -m tests.physics.hitbox_test
-py -m tests.racket_test
 ```
