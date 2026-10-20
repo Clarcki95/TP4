@@ -62,24 +62,53 @@ class AffichageTkinter(tk.Tk):
         self.wm_attributes("-transparentcolor", "yellow")
 
     def configure_window(self) -> None:
-        """Configure la fenêtre et crée le canevas du jeu."""
+        """Configure la fenêtre et le canvas à la taille de l'écran."""
+        GAME_WIDTH = self.winfo_screenwidth()
+        GAME_HEIGHT = self.winfo_screenheight()
+
         self.title("Casse brique")
-        self.geometry(f"{GAME_WIDTH}x{GAME_HEIGHT}")
+        self.geometry(f"{GAME_WIDTH}x{GAME_HEIGHT}+0+0")
         self.attributes("-fullscreen", True)
 
         self.base_canvas = tk.Canvas(
-            self, width=GAME_WIDTH, height=GAME_HEIGHT, background="red"
+            self,
+            width=GAME_WIDTH,
+            height=GAME_HEIGHT,
+            background="red",
+            highlightthickness=0,
+            borderwidth=0,
         )
         self.base_canvas.pack(fill="both", expand=True)
 
     def create_background(self) -> None:
-        """Charge et dimensionne l'image de fond du jeu."""
         background_path = RESOURCES_DIR / "backgrounds" / "game_bg.gif"
-        # Adapter l'image de 1200x750 à la zone de jeu de 1600x1000.
-        self.game_background = (
-            tk.PhotoImage(file=str(background_path)).zoom(4, 4).subsample(3, 3)
+        image = tk.PhotoImage(file=str(background_path))
+
+        # Calculer le facteur nécessaire pour couvrir l'écran
+        zoom = max(
+            1,
+            (GAME_WIDTH + image.width() - 1) // image.width() + 1,
+            (GAME_HEIGHT + image.height() - 1) // image.height() + 1,
         )
-        self.base_canvas.create_image(0, 0, image=self.game_background, anchor=tk.NW)
+
+        image = image.zoom(zoom, zoom)
+
+        # Réduire si l'image dépasse trop
+        subsample = max(
+            1,
+            min(
+                image.width() // GAME_WIDTH,
+                image.height() // GAME_HEIGHT,
+            ),
+        )
+
+        self.game_background = image.subsample(subsample, subsample)
+
+        self.base_canvas.create_image(
+            0, 0,
+            image=self.game_background,
+            anchor=tk.NW,
+        )
 
     def create_menus(self) -> None:
         """Crée les menus et associe leurs boutons aux actions de la fenêtre."""
@@ -196,18 +225,22 @@ class AffichageTkinter(tk.Tk):
         theta = np.random.uniform(-3 * np.pi / 4, -np.pi / 2)
         vx = v0 * np.cos(theta)
         vy = v0 * np.sin(theta)
-        self.ball = Ball(self.base_canvas, GAME_WIDTH / 2, GAME_HEIGHT / 2, vx, vy)
+        self.ball = Ball(self.base_canvas, 
+                         GAME_WIDTH / 2, 
+                         GAME_HEIGHT / 2, 
+                         vx,
+                         vy
+        )
 
     def create_walls(self) -> None:
-        """Crée les murs dans l'ordre haut, gauche, droite, bas."""
-        top_wall = Wall(self.base_canvas, GAME_WIDTH / 2, 1, GAME_WIDTH, 2, True)
-        left_wall = Wall(self.base_canvas, 1, GAME_HEIGHT / 2, 2, GAME_HEIGHT, True)
-        right_wall = Wall(
-            self.base_canvas, GAME_WIDTH - 1, GAME_HEIGHT / 2, 2, GAME_HEIGHT, True
-        )
-        bottom_wall = Wall(
-            self.base_canvas, GAME_WIDTH / 2, GAME_HEIGHT - 1, GAME_WIDTH, 2, False
-        )
+        """Crée les murs sur les bords de l'écran."""
+        w = GAME_WIDTH
+        h = GAME_HEIGHT
+
+        top_wall = Wall(self.base_canvas, w / 2, 1, w, 2, True)
+        left_wall = Wall(self.base_canvas, 1, h / 2, 2, h, True)
+        right_wall = Wall(self.base_canvas, w - 1, h / 2, 2, h, True)
+        bottom_wall = Wall(self.base_canvas, w / 2, h - 1, w, 2, False)
 
         self.walls = List()
         self.walls.add(top_wall)
