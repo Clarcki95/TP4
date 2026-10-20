@@ -5,6 +5,7 @@ Auteur : Nino BELAOUD
 """
 
 import tkinter as tk
+from functools import partial
 
 from entities.bricks.brick import Brick
 from game.levels.level import Level
@@ -27,22 +28,26 @@ class LevelManager:
         self.levels = List()
 
         # ========== Niveau 1 ==========
-        level_1_bricks = List()
+        level_1_factories = List()
 
         for pos_x in (400, 800, 600, 1000, 1200):
-            level_1_bricks.add(Brick(pos_x, 150, self.sound_manager, 1, self.canvas))
+            level_1_factories.add(
+                partial(Brick, pos_x, 150, self.sound_manager, 1, self.canvas)
+            )
 
-        level_1 = Level("Niveau 1", level_1_bricks)
+        level_1 = Level("Niveau 1", level_1_factories)
 
         self.levels.add(level_1)
         # ===============================
 
         # ========== Niveau 2 ==========
-        level_2_bricks = List()
+        level_2_factories = List()
         for pos_y in (150, 225):
             for pos_x in (400, 600, 800, 1000, 1200):
-                level_2_bricks.add(Brick(pos_x, pos_y, self.sound_manager, 1, self.canvas))
-        self.levels.add(Level("Niveau 2", level_2_bricks))
+                level_2_factories.add(
+                    partial(Brick, pos_x, pos_y, self.sound_manager, 1, self.canvas)
+                )
+        self.levels.add(Level("Niveau 2", level_2_factories))
         # ===============================
 
         self.select_level(0)
