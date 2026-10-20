@@ -2,7 +2,7 @@
 But : Affichage Tkinter, menus et boucle de mise à jour du jeu.
 Auteur : Tristan GUIEU, Nino BELAOUD
 Date : 06/10/26
-TODO : finir les raccourcis clavier, l'affichage du jeu et le fond du menu principal.
+TODO : l'affichage du jeu et le fond du menu principal.
 """
 
 import tkinter as tk
@@ -47,6 +47,8 @@ class AffichageTkinter(tk.Tk):
 
         self.assigned_keys = ASSIGNED_KEYS
         self.previous_assigned_keys = self.assigned_keys.copy()
+        self.sound_manager = Sound_manager()
+
         self.sound_manager = Sound_manager()
 
         self.configure_window()
@@ -115,16 +117,20 @@ class AffichageTkinter(tk.Tk):
     def bind_controls(self) -> None:
         """Associe les touches aux actions du jeu."""
         self.bind(
-            f"<{self.assigned_keys["toggle_menu"]}>",
-            lambda event: self.choose_menu_toggling()
+            f"<{self.assigned_keys['toggle_menu']}>",
+            lambda event: self.choose_menu_toggling(),
         )
-        self.bind(f"<{self.assigned_keys["exit_game"]}>", lambda event: self.close())
+        self.bind(f"<{self.assigned_keys['exit_game']}>", lambda event: self.close())
 
         # Movement
-        self.bind(f"<KeyPress-{self.assigned_keys["left"]}>", self.press_movement_key)
-        self.bind(f"<KeyRelease-{self.assigned_keys["left"]}>", self.release_movement_key)
-        self.bind(f"<KeyPress-{self.assigned_keys["right"]}>", self.press_movement_key)
-        self.bind(f"<KeyRelease-{self.assigned_keys["right"]}>", self.release_movement_key)
+        self.bind(f"<KeyPress-{self.assigned_keys['left']}>", self.press_movement_key)
+        self.bind(
+            f"<KeyRelease-{self.assigned_keys['left']}>", self.release_movement_key
+        )
+        self.bind(f"<KeyPress-{self.assigned_keys['right']}>", self.press_movement_key)
+        self.bind(
+            f"<KeyRelease-{self.assigned_keys['right']}>", self.release_movement_key
+        )
 
     def update_binds(self):
         for key in self.previous_assigned_keys.values():
@@ -182,7 +188,7 @@ class AffichageTkinter(tk.Tk):
 
     def setup_level_manager(self) -> None:
         """Initialise les définitions des niveaux pour le canevas du jeu."""
-        self.level_manager = LevelManager(self.base_canvas)
+        self.level_manager = LevelManager(self.base_canvas, self.sound_manager)
 
     def create_ball(self) -> None:
         """Crée la balle avec sa vitesse et son angle de départ aléatoire."""
@@ -253,6 +259,7 @@ class AffichageTkinter(tk.Tk):
 
     def tick_collisions(self) -> None:
         """Traite les collisions avec les murs, les briques et la raquette."""
+        # Collisions avec les murs
         for wall in self.walls.to_list():
             will_collide = wall.compute_collision(self.ball)
             if will_collide and not wall.is_bouncy():
@@ -264,6 +271,7 @@ class AffichageTkinter(tk.Tk):
         level_manager = self.level_manager
         bricks = level_manager.get_bricks().to_list()
 
+        # Collisions avec les briques
         destroyed_indices = []
         for index, brick in enumerate(bricks):
             will_collide = brick.compute_collision(self.ball)
@@ -273,11 +281,13 @@ class AffichageTkinter(tk.Tk):
                 if brick.pv == 0:
                     destroyed_indices.append(index)
 
-        # Retirer depuis la fin pour conserver les indices des autres briques.
+        # Retirer depuis la fin pour conserver les indices des autres briques
         for index in reversed(destroyed_indices):
             level_manager.remove_brick(index)
 
-        if self.racket.compute_collision(self.ball):
+        is_racket_collision = self.racket.compute_collision(self.ball)
+
+        if is_racket_collision:
             self.sound_manager.sound("bounce_racket")
 
     def tick_pause(self, state) -> None:
@@ -298,6 +308,7 @@ class AffichageTkinter(tk.Tk):
         self.game_on = False
         self.reset_movement()
         self.gameover_menu.toggle_visibility()
+        self.sound_manager.sound("defeat")
 
     def next_level(self, event: tk.Event | None = None) -> None:
         """Nettoie le terrain et démarre le niveau suivant s'il existe."""
@@ -343,7 +354,7 @@ class AffichageTkinter(tk.Tk):
         # Instancier de nouvelles briques sans réutiliser les widgets détruits.
         self.level_manager.init_level()
 
-        self.racket = Racket(self.base_canvas)
+        self.racket = Racket(self.base_canvas, self.sound_manager)
         self.base_canvas.tag_raise(self.racket.rect)
 
         self.level_elapsed_time = 0.0

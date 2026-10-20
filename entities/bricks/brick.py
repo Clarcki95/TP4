@@ -19,7 +19,7 @@ BRICK_HEIGHT = 50
 class Brick(tk.Label):
     """Brique affichée dans un label et associée à une hitbox."""
 
-    def __init__(self, pos_x, pos_y, pv=1, master=None) -> None:
+    def __init__(self, pos_x, pos_y, sound_manager, pv=1, master=None) -> None:
         """
         Prépare une brique sans encore charger sa texture ni l'afficher.
 
@@ -34,6 +34,8 @@ class Brick(tk.Label):
         self.pv = pv
         self.texture = RESOURCES_DIR / "bricks" / "brick.webp"
         self.score = 10
+
+        self.sound_manager = sound_manager
 
         self.hitbox = Hitbox(pos_x, pos_y, BRICK_WIDTH, BRICK_HEIGHT)
         # Le gestionnaire de niveaux appelle create() au démarrage de la partie.
@@ -56,6 +58,7 @@ class Brick(tk.Label):
 
     def on_death(self) -> int:
         """Détruit le label et retourne le score associé à la brique."""
+        self.sound_manager.sound("death")
         self.destroy()
         return self.score
 

@@ -131,6 +131,8 @@ class Hitbox:
         if not will_collide:
             return False
 
+        
+
         # ================================
         # CALCUL DU REBOND
         # ================================

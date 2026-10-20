@@ -29,13 +29,15 @@ BOTTOM_MARGIN = 100
 class Racket:
     """Raquette rectangulaire contrôlée par le joueur."""
 
-    def __init__(self, canvas: tk.Canvas) -> None:
+    def __init__(self, canvas: tk.Canvas, sound_manager) -> None:
         self.hitbox = Hitbox(50, 800, WIDTH, HEIGHT)
         self.canvas = canvas
         self.acceleration = ACCELERATION
         self.velocity = 0
         self.create()
         self.sync_hitbox()
+
+        self.sound_manager = sound_manager
 
     def create(self) -> None:
         """Dessine la raquette au bas du canevas."""
@@ -88,6 +90,9 @@ class Racket:
             max_vx = speed * MAX_HORIZONTAL_RATIO
             vx = max(-max_vx, min(hitbox.vx + self.velocity * VELOCITY_TRANSFER, max_vx))
             hitbox.set_velocity(vx, -sqrt(speed ** 2 - vx ** 2))
+
+        if will_collide :
+            self.sound_manager.sound("bounce_racket")
 
         return will_collide
 
