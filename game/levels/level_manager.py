@@ -5,9 +5,11 @@ Auteur : Nino BELAOUD
 """
 
 import tkinter as tk
+from collections.abc import Callable
 
 from entities.bricks.accelerator_brick import AcceleratorBrick
 from entities.bricks.brick import Brick
+from entities.bricks.ice_brick import IceBrick
 from game.levels.level import Level
 from utils.list import List
 
@@ -15,7 +17,9 @@ from utils.list import List
 class LevelManager:
     """Conserve les niveaux disponibles et les briques actuellement en jeu."""
 
-    def __init__(self, canvas: tk.Canvas, sound_manager) -> None:
+    def __init__(
+        self, canvas: tk.Canvas, sound_manager, on_freeze: Callable[[], None],
+    ) -> None:
         """Prépare le premier niveau sans encore créer ses widgets."""
         self.selected_level: Level | None = None
 
@@ -34,6 +38,13 @@ class LevelManager:
             level_0_factories.add(
                 lambda pos_x=pos_x: AcceleratorBrick(
                     pos_x, 150, self.sound_manager, self.canvas
+                )
+            )
+
+        for pos_x in (500, 700, 900, 1100):
+            level_0_factories.add(
+                lambda pos_x=pos_x: IceBrick(
+                    pos_x, 225, self.sound_manager, self.canvas, on_freeze
                 )
             )
 

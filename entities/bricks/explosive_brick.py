@@ -5,6 +5,7 @@ Date : 13/10/26
 TODO : détruire les briques dans un carré de rayon radius.
 """
 
+from config import RESOURCES_DIR
 from entities.bricks.brick import Brick
 
 
@@ -16,7 +17,7 @@ class ExplosiveBrick(Brick):
 
         self.pv = 4
         self.radius = 1
-        self.texture = "./ressources/bricks/explosive_brick.webp"
+        self.texture = RESOURCES_DIR / "bricks" / "explosive_brick_v2.webp"
         self.score = 30
 
     def on_death(self) -> int:

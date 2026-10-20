@@ -79,7 +79,29 @@ class AffichageTkinter(tk.Tk):
         self.game_background = (
             tk.PhotoImage(file=str(background_path)).zoom(4, 4).subsample(3, 3)
         )
-        self.base_canvas.create_image(0, 0, image=self.game_background, anchor=tk.NW)
+        self.ice_background = (
+            tk.PhotoImage(file=str(RESOURCES_DIR / "backgrounds" / "game_bg_ice.png"))
+            .zoom(4, 4).subsample(3, 3)
+        )
+        self.background_drawing = self.base_canvas.create_image(
+            0, 0, image=self.game_background, anchor=tk.NW
+        )
+        self.background_frozen = False
+
+    def freeze_racket(self) -> None:
+        """Active la glissade et affiche immédiatement le fond givré."""
+        self.racket.freeze()
+        self.update_ice_background()
+
+    def update_ice_background(self) -> None:
+        """Synchronise le fond avec l'effet de glace de la raquette."""
+        frozen = self.racket.ice_started_at is not None
+        if frozen != self.background_frozen:
+            self.base_canvas.itemconfig(
+                self.background_drawing,
+                image=self.ice_background if frozen else self.game_background,
+            )
+            self.background_frozen = frozen
 
     def create_menus(self) -> None:
         """Crée les menus et associe leurs boutons aux actions de la fenêtre."""
@@ -188,7 +210,9 @@ class AffichageTkinter(tk.Tk):
 
     def setup_level_manager(self) -> None:
         """Initialise les définitions des niveaux pour le canevas du jeu."""
-        self.level_manager = LevelManager(self.base_canvas, self.sound_manager)
+        self.level_manager = LevelManager(
+            self.base_canvas, self.sound_manager, self.freeze_racket
+        )
 
     def create_ball(self) -> None:
         """Crée la balle avec sa vitesse et son angle de départ aléatoire."""
@@ -229,6 +253,7 @@ class AffichageTkinter(tk.Tk):
 
         # Tick les collisions
         self.tick_collisions()
+        self.update_ice_background()
 
         if not self.paused:
             # Verifier la victoire

@@ -7,6 +7,7 @@ TODO : compléter l'effet de on_death.
 
 import tkinter as tk
 
+from config import RESOURCES_DIR
 from entities.ball import Ball
 from entities.bricks.brick import Brick
 
@@ -19,7 +20,7 @@ class AcceleratorBrick(Brick):
 
         self.pv = 2
         self.score = 15
-        self.texture = "./ressources/bricks/accelerator_brick.webp"
+        self.texture = RESOURCES_DIR / "bricks" / "accelerator_brick_v2.webp"
 
     def on_death(self) -> int:
         return super().on_death()

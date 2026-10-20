@@ -5,6 +5,7 @@ Auteur: Tristan GUIEU
 """
 
 import tkinter as tk
+import time
 from math import hypot, sqrt
 
 from entities.ball import Ball
@@ -16,6 +17,9 @@ VELOCITY_MAX = 17
 ACCELERATION = 8
 # Décélération au relâchement (px/tick^2)
 FRICTION = 5
+# Durée de l'effet de glace et multiplicateur des frottements.
+EFFECT_ICE_DURATION_S = 5
+ICE_FRICTION_FACTOR = 0.2
 # Part de la vitesse de la raquette transmise horizontalement à la balle.
 VELOCITY_TRANSFER = 0.35
 # Garder une composante verticale suffisante pour que la balle remonte.
@@ -33,6 +37,8 @@ class Racket:
         self.hitbox = Hitbox(50, 800, WIDTH, HEIGHT)
         self.canvas = canvas
         self.acceleration = ACCELERATION
+        self.friction = FRICTION
+        self.ice_started_at = None
         self.velocity = 0
         self.create()
         self.sync_hitbox()
@@ -54,12 +60,14 @@ class Racket:
 
     def update(self, direction: int = 0) -> None:
         """Avance d'un tick selon la direction (-1, 0 ou 1), sans sortir du canevas."""
+        self.handle_ice_decrease()
+
         if direction:
             self.velocity += direction * self.acceleration
         elif self.velocity > 0:
-            self.velocity = max(0, self.velocity - FRICTION)
+            self.velocity = max(0, self.velocity - self.friction)
         elif self.velocity < 0:
-            self.velocity = min(0, self.velocity + FRICTION)
+            self.velocity = min(0, self.velocity + self.friction)
 
         # Clamp la vitesse entre V_MAX
         self.velocity = max(-VELOCITY_MAX, min(self.velocity, VELOCITY_MAX))
@@ -77,6 +85,24 @@ class Racket:
 
         # Synchroniser la hitbox
         self.sync_hitbox()
+
+    def freeze(self) -> None:
+        """Active la glace une fois, sans cumul ni prolongation pendant l'effet."""
+        self.handle_ice_decrease()
+        if self.ice_started_at is not None:
+            return
+
+        self.ice_started_at = time.time()
+        self.friction = FRICTION * ICE_FRICTION_FACTOR
+
+    def handle_ice_decrease(self) -> None:
+        """Rétablit les frottements à l'expiration de l'unique effet de glace."""
+        if (
+            self.ice_started_at is not None
+            and time.time() - self.ice_started_at >= EFFECT_ICE_DURATION_S
+        ):
+            self.ice_started_at = None
+            self.friction = FRICTION
 
     def compute_collision(self, ball: Ball) -> bool:
         """Fait rebondir la balle et dévie sa trajectoire selon notre vitesse."""
