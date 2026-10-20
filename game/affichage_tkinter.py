@@ -26,6 +26,7 @@ from game.menus.keybinds_menu import Keybinds_menu
 from game.menus.main_menu import Main_menu
 from game.menus.option_menu import Option_menu
 from game.menus.victory_menu import Victory_menu
+from sound.sound_manager import Sound_manager
 from utils.list import List
 
 
@@ -46,6 +47,7 @@ class AffichageTkinter(tk.Tk):
 
         self.assigned_keys = ASSIGNED_KEYS
         self.previous_assigned_keys = self.assigned_keys.copy()
+        self.sound_manager = Sound_manager()
 
         self.configure_window()
         self.bind_controls()
@@ -75,9 +77,7 @@ class AffichageTkinter(tk.Tk):
         self.game_background = (
             tk.PhotoImage(file=str(background_path)).zoom(4, 4).subsample(3, 3)
         )
-        self.base_canvas.create_image(
-            0, 0, image=self.game_background, anchor=tk.NW
-        )
+        self.base_canvas.create_image(0, 0, image=self.game_background, anchor=tk.NW)
 
     def create_menus(self) -> None:
         """Crée les menus et associe leurs boutons aux actions de la fenêtre."""
@@ -176,7 +176,6 @@ class AffichageTkinter(tk.Tk):
         else:
             self.main_menu.toggle_visibility()
 
-
     def reset_movement(self, event=None) -> None:
         """Évite les touches bloquées après une pause ou une perte de focus."""
         self.pressed_keys.clear()
@@ -191,16 +190,18 @@ class AffichageTkinter(tk.Tk):
         theta = np.random.uniform(-3 * np.pi / 4, -np.pi / 2)
         vx = v0 * np.cos(theta)
         vy = v0 * np.sin(theta)
-        self.ball = Ball(
-            self.base_canvas, GAME_WIDTH / 2, GAME_HEIGHT / 2, vx, vy
-        )
+        self.ball = Ball(self.base_canvas, GAME_WIDTH / 2, GAME_HEIGHT / 2, vx, vy)
 
     def create_walls(self) -> None:
         """Crée les murs dans l'ordre haut, gauche, droite, bas."""
         top_wall = Wall(self.base_canvas, GAME_WIDTH / 2, 1, GAME_WIDTH, 2, True)
         left_wall = Wall(self.base_canvas, 1, GAME_HEIGHT / 2, 2, GAME_HEIGHT, True)
-        right_wall = Wall(self.base_canvas, GAME_WIDTH - 1, GAME_HEIGHT / 2, 2, GAME_HEIGHT, True)
-        bottom_wall = Wall(self.base_canvas, GAME_WIDTH / 2, GAME_HEIGHT - 1, GAME_WIDTH, 2, False)
+        right_wall = Wall(
+            self.base_canvas, GAME_WIDTH - 1, GAME_HEIGHT / 2, 2, GAME_HEIGHT, True
+        )
+        bottom_wall = Wall(
+            self.base_canvas, GAME_WIDTH / 2, GAME_HEIGHT - 1, GAME_WIDTH, 2, False
+        )
 
         self.walls = List()
         self.walls.add(top_wall)
@@ -210,13 +211,14 @@ class AffichageTkinter(tk.Tk):
 
     def tick(self) -> None:
         """Met à jour le jeu puis programme la prochaine itération."""
-        # Si le jeu est en pause, on n'execute rien
         if self.paused:
             self.tick_id = self.base_canvas.after(TICK_DURATION_MS, self.tick)
             return
 
         # Mettre à jour la raquette avant de tester les collisions.
-        direction = int(self.assigned_keys["right"] in self.pressed_keys) - int(self.assigned_keys["left"] in self.pressed_keys)
+        direction = int(self.assigned_keys["right"] in self.pressed_keys) - int(
+            self.assigned_keys["left"] in self.pressed_keys
+        )
         self.racket.update(direction)
 
         # Tick les collisions
@@ -230,7 +232,6 @@ class AffichageTkinter(tk.Tk):
         if not self.paused:
             self.ball.update()
 
-        # Relancer le tick
         self.tick_id = self.base_canvas.after(TICK_DURATION_MS, self.tick)
 
     def check_win_condition(self) -> None:
@@ -257,6 +258,8 @@ class AffichageTkinter(tk.Tk):
             if will_collide and not wall.is_bouncy():
                 self.game_over()
                 return
+            if will_collide:
+                self.sound_manager.sound("bounce")
 
         level_manager = self.level_manager
         bricks = level_manager.get_bricks().to_list()
@@ -266,6 +269,7 @@ class AffichageTkinter(tk.Tk):
             will_collide = brick.compute_collision(self.ball)
             if will_collide:
                 brick.on_touch()
+                self.sound_manager.sound("death" if brick.pv == 0 else "bounce")
                 if brick.pv == 0:
                     destroyed_indices.append(index)
 
@@ -273,7 +277,8 @@ class AffichageTkinter(tk.Tk):
         for index in reversed(destroyed_indices):
             level_manager.remove_brick(index)
 
-        self.racket.compute_collision(self.ball)
+        if self.racket.compute_collision(self.ball):
+            self.sound_manager.sound("bounce_racket")
 
     def tick_pause(self, state) -> None:
         """Suspend ou reprend le jeu en excluant les pauses du chronomètre."""
@@ -315,6 +320,7 @@ class AffichageTkinter(tk.Tk):
                 pass
             self.tick_id = None
 
+        self.sound_manager.close()
         self.quit()
 
     def start(self, event: tk.Event | None = None) -> None:
@@ -342,10 +348,7 @@ class AffichageTkinter(tk.Tk):
 
         self.level_elapsed_time = 0.0
         self.level_timer_started_at = monotonic()
-        self.tick_id = self.base_canvas.after(
-            TICK_DURATION_MS,
-            self.tick
-        )
+        self.tick_id = self.base_canvas.after(TICK_DURATION_MS, self.tick)
 
     def stop(self) -> None:
         """Arrête les ticks et détruit les éléments du jeu."""
