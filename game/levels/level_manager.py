@@ -38,6 +38,14 @@ class LevelManager:
         self.levels.add(level_1)
         # ===============================
 
+        # ========== Niveau 2 ==========
+        level_2_bricks = List()
+        for pos_y in (150, 225):
+            for pos_x in (400, 600, 800, 1000, 1200):
+                level_2_bricks.add(partial(Brick, pos_x, pos_y, 1, self.canvas))
+        self.levels.add(Level("Niveau 2", level_2_bricks))
+        # ===============================
+
         self.select_level(0)
 
     def select_level(self, level_id: int) -> None:
@@ -51,6 +59,11 @@ class LevelManager:
             IndexError: Si l'index ne correspond à aucun niveau.
         """
         self.selected_level = self.levels.get(level_id)
+        self.selected_level_id = level_id
+
+    def has_next_level(self) -> bool:
+        """Indique si un niveau suit celui qui est sélectionné."""
+        return self.selected_level_id + 1 < self.levels.size
 
     def get_selected_level(self) -> Level:
         """

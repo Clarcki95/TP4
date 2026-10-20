@@ -6,6 +6,7 @@ TODO : finir les raccourcis clavier, l'affichage du jeu et le fond du menu princ
 """
 
 import tkinter as tk
+from time import monotonic
 
 import numpy as np
 
@@ -24,6 +25,7 @@ from game.menus.gameover_menu import Gameover_menu
 from game.menus.keybinds_menu import Keybinds_menu
 from game.menus.main_menu import Main_menu
 from game.menus.option_menu import Option_menu
+from game.menus.victory_menu import Victory_menu
 from utils.list import List
 
 
@@ -34,6 +36,9 @@ class AffichageTkinter(tk.Tk):
         super().__init__()
         self.paused = False
         self.game_on = False
+        self.level_won = False
+        self.level_elapsed_time = 0.0
+        self.level_timer_started_at = None
         self.waiting_for_key = False
         self.pressed_keys = set()
         self.tick_id = None
@@ -103,6 +108,9 @@ class AffichageTkinter(tk.Tk):
             self.restart_level,
             self.close,
         )
+        self.victory_menu = Victory_menu(
+            self.base_canvas, self.next_level, self.restart_level, self.back_to_menu
+        )
 
     def bind_controls(self) -> None:
         """Associe les touches aux actions du jeu."""
@@ -145,6 +153,9 @@ class AffichageTkinter(tk.Tk):
 
     def choose_menu_toggling(self):
         if self.waiting_for_key:
+            return
+
+        if self.victory_menu.is_visible():
             return
 
         if self.keybinds_menu.is_visible():
@@ -199,6 +210,7 @@ class AffichageTkinter(tk.Tk):
 
     def tick(self) -> None:
         """Met à jour le jeu puis programme la prochaine itération."""
+        # Si le jeu est en pause, on n'execute rien
         if self.paused:
             self.tick_id = self.base_canvas.after(TICK_DURATION_MS, self.tick)
             return
@@ -210,42 +222,86 @@ class AffichageTkinter(tk.Tk):
         # Tick les collisions
         self.tick_collisions()
 
-        # Mettre à jour la position de la balle
-        self.ball.update()
+        if not self.paused:
+            # Verifier la victoire
+            self.check_win_condition()
+
+        # Mettre à jour la balle seulement si le niveau continue.
+        if not self.paused:
+            self.ball.update()
 
         # Relancer le tick
         self.tick_id = self.base_canvas.after(TICK_DURATION_MS, self.tick)
+
+    def check_win_condition(self) -> None:
+        """Détecte la victoire quand il ne reste aucune brique cassable."""
+        if not self.game_on or self.level_won:
+            return
+
+        if any(brick.pv > 0 for brick in self.level_manager.get_bricks().to_list()):
+            return
+
+        self.level_won = True
+        self.tick_pause(True)
+        self.reset_movement()
+        self.victory_menu.show(
+            self.level_manager.get_selected_level().get_level_name(),
+            self.level_manager.has_next_level(),
+            self.level_elapsed_time,
+        )
 
     def tick_collisions(self) -> None:
         """Traite les collisions avec les murs, les briques et la raquette."""
         for wall in self.walls.to_list():
             will_collide = wall.compute_collision(self.ball)
             if will_collide and not wall.is_bouncy():
-                # TODO : gérer la fin de partie.
                 self.game_over()
+                return
 
         level_manager = self.level_manager
         bricks = level_manager.get_bricks().to_list()
 
+        destroyed_indices = []
         for index, brick in enumerate(bricks):
             will_collide = brick.compute_collision(self.ball)
             if will_collide:
                 brick.on_touch()
                 if brick.pv == 0:
-                    level_manager.remove_brick(index)
+                    destroyed_indices.append(index)
+
+        # Retirer depuis la fin pour conserver les indices des autres briques.
+        for index in reversed(destroyed_indices):
+            level_manager.remove_brick(index)
 
         self.racket.compute_collision(self.ball)
 
     def tick_pause(self, state) -> None:
+        """Suspend ou reprend le jeu en excluant les pauses du chronomètre."""
+        now = monotonic()
+        if self.level_timer_started_at is not None:
+            self.level_elapsed_time += now - self.level_timer_started_at
+        self.level_timer_started_at = (
+            now if not state and self.game_on and not self.level_won else None
+        )
         self.paused = state
 
     def changing_waiting_for_key(self, new_state):
         self.waiting_for_key = new_state
 
     def game_over(self):
-        self.paused = True
+        self.tick_pause(True)
         self.game_on = False
+        self.reset_movement()
         self.gameover_menu.toggle_visibility()
+
+    def next_level(self, event: tk.Event | None = None) -> None:
+        """Nettoie le terrain et démarre le niveau suivant s'il existe."""
+        if not self.level_won or not self.level_manager.has_next_level():
+            return
+
+        self.stop()
+        self.level_manager.select_level(self.level_manager.selected_level_id + 1)
+        self.start()
 
     def close(self, event: tk.Event | None = None) -> None:
         """Arrête la boucle principale pour fermer proprement le jeu."""
@@ -268,10 +324,12 @@ class AffichageTkinter(tk.Tk):
         self.option_menu.place_forget()
         self.gameover_menu.place_forget()
         self.keybinds_menu.place_forget()
+        self.victory_menu.place_forget()
 
         self.reset_movement()
         self.paused = False
         self.game_on = True
+        self.level_won = False
 
         self.create_background()
         self.create_ball()
@@ -282,6 +340,8 @@ class AffichageTkinter(tk.Tk):
         self.racket = Racket(self.base_canvas)
         self.base_canvas.tag_raise(self.racket.rect)
 
+        self.level_elapsed_time = 0.0
+        self.level_timer_started_at = monotonic()
         self.tick_id = self.base_canvas.after(
             TICK_DURATION_MS,
             self.tick
@@ -290,8 +350,8 @@ class AffichageTkinter(tk.Tk):
     def stop(self) -> None:
         """Arrête les ticks et détruit les éléments du jeu."""
 
+        self.tick_pause(True)
         self.game_on = False
-        self.paused = True
         self.reset_movement()
 
         if self.tick_id:
@@ -314,11 +374,18 @@ class AffichageTkinter(tk.Tk):
         # TODO : permettre l'assignation des touches.
         self.keybinds_menu.toggle_visibility(last_menu)
 
-    def back_to_menu(self, event: tk.Event) -> None:
-        """Bascule des options vers le menu principal."""
+    def back_to_menu(self, event: tk.Event | None = None) -> None:
+        """Nettoie la partie et affiche uniquement le menu principal."""
         self.stop()
-        self.choose_menu_toggling()
-        self.main_menu.toggle_visibility()
+        self.option_menu.place_forget()
+        self.gameover_menu.place_forget()
+        self.keybinds_menu.place_forget()
+        self.victory_menu.place_forget()
+        if not self.main_menu.is_visible():
+            self.main_menu.toggle_visibility()
+
+        # Remet le niveau à 0
+        self.level_manager.select_level(0)
 
     def restart_level(self, event: tk.Event | None = None) -> None:
         """Nettoie la partie actuelle puis en démarre une nouvelle."""
