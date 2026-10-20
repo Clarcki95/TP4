@@ -19,7 +19,16 @@ BRICK_HEIGHT = 50
 class Brick(tk.Label):
     """Brique affichée dans un label et associée à une hitbox."""
 
-    def __init__(self, pos_x, pos_y, pv = 1, master=None) -> None:
+    def __init__(self, pos_x, pos_y, pv=1, master=None) -> None:
+        """
+        Prépare une brique sans encore charger sa texture ni l'afficher.
+
+        Args:
+            pos_x (float): Abscisse du centre de la brique.
+            pos_y (float): Ordonnée du centre de la brique.
+            pv (int): Nombre initial de points de vie.
+            master (tk.Misc | None): Widget parent de la brique.
+        """
         super().__init__(master, borderwidth=0, highlightthickness=0)
 
         self.pv = pv
@@ -27,8 +36,7 @@ class Brick(tk.Label):
         self.score = 10
 
         self.hitbox = Hitbox(pos_x, pos_y, BRICK_WIDTH, BRICK_HEIGHT)
-
-        self.create()
+        # Le gestionnaire de niveaux appelle create() au démarrage de la partie.
 
     def create(self) -> None:
         """Charge la texture et place la brique au centre de sa hitbox."""

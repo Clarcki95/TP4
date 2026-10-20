@@ -9,17 +9,23 @@ import tkinter as tk
 
 import numpy as np
 
-from config import GAME_HEIGHT, GAME_WIDTH, RESOURCES_DIR, TICK_DURATION_MS, ASSIGNED_KEYS
+from config import (
+    ASSIGNED_KEYS,
+    GAME_HEIGHT,
+    GAME_WIDTH,
+    RESOURCES_DIR,
+    TICK_DURATION_MS,
+)
 from entities.ball import Ball
-from entities.bricks.brick import Brick
 from entities.racket import Racket
 from entities.wall import Wall
-from utils.list import List
 
-from game.menus.option_menu import Option_menu
-from game.menus.main_menu import Main_menu
-from game.menus.keybinds_menu import Keybinds_menu
+from game.levels.level_manager import LevelManager
 from game.menus.gameover_menu import Gameover_menu
+from game.menus.keybinds_menu import Keybinds_menu
+from game.menus.main_menu import Main_menu
+from game.menus.option_menu import Option_menu
+from utils.list import List
 
 
 class AffichageTkinter(tk.Tk):
@@ -40,6 +46,9 @@ class AffichageTkinter(tk.Tk):
         self.configure_window()
         self.bind_controls()
         self.create_menus()
+
+        # Préparer les niveaux
+        self.setup_level_manager()
 
         # Le jaune sert de couleur transparente aux menus.
         self.wm_attributes("-transparentcolor", "yellow")
@@ -66,34 +75,40 @@ class AffichageTkinter(tk.Tk):
             0, 0, image=self.game_background, anchor=tk.NW
         )
 
-    def create_menus(self) :
-        self.keybinds_menu = Keybinds_menu(self.base_canvas, 
-                                           self.assigned_keys, 
-                                           self.change_key,
-                                           self.changing_waiting_for_key)
-
-        self.main_menu = Main_menu(self.base_canvas, 
-                                   GAME_WIDTH, 
-                                   GAME_HEIGHT, 
-                                   self.start, 
-                                   self.keybinds, 
-                                   self.close)
-        
-        self.option_menu = Option_menu(self.base_canvas, 
-                                       self.keybinds, 
-                                       self.back_to_menu, 
-                                       self.restart_level,
-                                       self.tick_pause)
-
-        self.gameover_menu = Gameover_menu(self.base_canvas, 
-                                           self.back_to_menu, 
-                                           self.restart_level, 
-                                           self.close)
+    def create_menus(self) -> None:
+        """Crée les menus et associe leurs boutons aux actions de la fenêtre."""
+        self.keybinds_menu = Keybinds_menu(
+            self.base_canvas,
+            self.assigned_keys,
+            self.change_key,
+            self.changing_waiting_for_key,
+        )
+        self.main_menu = Main_menu(
+            self.base_canvas,
+            GAME_WIDTH,
+            GAME_HEIGHT,
+            self.start,
+            self.keybinds,
+            self.close,
+        )
+        self.option_menu = Option_menu(
+            self.base_canvas,
+            self.keybinds,
+            self.back_to_menu,
+            self.restart_level,
+            self.tick_pause,
+        )
+        self.gameover_menu = Gameover_menu(
+            self.base_canvas,
+            self.back_to_menu,
+            self.restart_level,
+            self.close,
+        )
 
     def bind_controls(self) -> None:
         """Associe les touches aux actions du jeu."""
         self.bind(
-            f"<{self.assigned_keys["toggle_menu"]}>", 
+            f"<{self.assigned_keys["toggle_menu"]}>",
             lambda event: self.choose_menu_toggling()
         )
         self.bind(f"<{self.assigned_keys["exit_game"]}>", lambda event: self.close())
@@ -156,11 +171,9 @@ class AffichageTkinter(tk.Tk):
         """Évite les touches bloquées après une pause ou une perte de focus."""
         self.pressed_keys.clear()
 
-    def create_bricks(self) -> None:
-        """Crée les cinq briques du niveau."""
-        self.bricks = List()
-        for pos_x in (400, 800, 600, 1000, 1200):
-            self.bricks.add(Brick(pos_x, 150, self.base_canvas))
+    def setup_level_manager(self) -> None:
+        """Initialise les définitions des niveaux pour le canevas du jeu."""
+        self.level_manager = LevelManager(self.base_canvas)
 
     def create_ball(self) -> None:
         """Crée la balle avec sa vitesse et son angle de départ aléatoire."""
@@ -212,12 +225,15 @@ class AffichageTkinter(tk.Tk):
                 # TODO : gérer la fin de partie.
                 self.game_over()
 
-        for index, brick in enumerate(self.bricks.to_list()):
+        level_manager = self.level_manager
+        bricks = level_manager.get_bricks().to_list()
+
+        for index, brick in enumerate(bricks):
             will_collide = brick.compute_collision(self.ball)
             if will_collide:
                 brick.on_touch()
                 if brick.pv == 0:
-                    self.bricks.remove(index)
+                    level_manager.remove_brick(index)
 
         self.racket.compute_collision(self.ball)
 
@@ -232,7 +248,7 @@ class AffichageTkinter(tk.Tk):
         self.game_on = False
         self.gameover_menu.toggle_visibility()
 
-    def close(self, event: tk.Event = None) -> None:
+    def close(self, event: tk.Event | None = None) -> None:
         """Arrête la boucle principale pour fermer proprement le jeu."""
         if self.waiting_for_key:
             return
@@ -246,9 +262,8 @@ class AffichageTkinter(tk.Tk):
 
         self.quit()
 
-    def start(self, event: tk.Event = None) -> None:
-        """Démarre une nouvelle partie."""
-
+    def start(self, event: tk.Event | None = None) -> None:
+        """Démarre une partie après le nettoyage de la précédente avec stop()."""
         # Masquer explicitement les menus.
         self.main_menu.place_forget()
         self.option_menu.place_forget()
@@ -262,7 +277,8 @@ class AffichageTkinter(tk.Tk):
         self.create_background()
         self.create_ball()
         self.create_walls()
-        self.create_bricks()
+        # Instancier de nouvelles briques sans réutiliser les widgets détruits.
+        self.level_manager.init_level()
 
         self.racket = Racket(self.base_canvas)
         self.base_canvas.tag_raise(self.racket.rect)
@@ -287,13 +303,12 @@ class AffichageTkinter(tk.Tk):
 
             self.tick_id = None
 
+        # delete() efface les dessins du canevas, mais pas les widgets enfants.
         self.base_canvas.delete("all")
 
-        for brick in self.bricks.to_list():
-            brick.destroy()
-
         self.walls = List()
-        self.bricks = List()
+        # Les briques sont des labels : les détruire séparément des dessins.
+        self.level_manager.clear_level()
 
     def keybinds(self, last_menu, event: tk.Event) -> None:
         """Masque le menu courant en attendant l'écran des raccourcis."""
@@ -306,7 +321,8 @@ class AffichageTkinter(tk.Tk):
         self.choose_menu_toggling()
         self.main_menu.toggle_visibility()
 
-    def restart_level(self, event: tk.Event = None) -> None:
+    def restart_level(self, event: tk.Event | None = None) -> None:
         """Nettoie la partie actuelle puis en démarre une nouvelle."""
+        # Annuler le tick et détruire les anciens éléments avant de les recréer.
         self.stop()
         self.start()
