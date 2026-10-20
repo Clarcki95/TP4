@@ -1,6 +1,7 @@
 
 import tkinter as tk
 
+
 class Keybinds_menu(tk.Canvas):
     def __init__(self, canva, assigned_keys, change_key, changing_waiting_for_key):
         self.width = 400

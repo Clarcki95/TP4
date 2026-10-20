@@ -1,6 +1,7 @@
 
 import tkinter as tk
 
+
 class Gameover_menu(tk.Canvas):
     def __init__(self, canva, back_to_menu, restart_game, exit):
         self.width = 400
@@ -81,7 +82,7 @@ class Gameover_menu(tk.Canvas):
         self.tag_bind(back_to_menu, "<Button-1>", self.back_to_menu)
         self.tag_bind(restart_game, "<Button-1>", self.restart_game)
         self.tag_bind(exit, "<Button-1>", self.exit,
-        )   
+        )
 
     def is_visible(self):
         return self.winfo_ismapped()

@@ -1,6 +1,7 @@
 
 import tkinter as tk
 
+
 class Option_menu(tk.Canvas):
     def __init__(self, canva, keybinds, back_to_menu, restart_level, paused):
         self.width = 400

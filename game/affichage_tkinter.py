@@ -19,7 +19,6 @@ from config import (
 from entities.ball import Ball
 from entities.racket import Racket
 from entities.wall import Wall
-
 from game.levels.level_manager import LevelManager
 from game.menus.gameover_menu import Gameover_menu
 from game.menus.keybinds_menu import Keybinds_menu

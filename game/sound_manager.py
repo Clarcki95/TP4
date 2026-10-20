@@ -1,5 +1,8 @@
+"""Gestion des sons du jeu, à implémenter."""
 
-import tkinter as tk
 
-class Sound_manager():
-    def __init__(self):
+class Sound_manager:
+    """Point de départ du futur gestionnaire de sons."""
+
+    def __init__(self) -> None:
+        """Réserve l'initialisation des ressources audio."""

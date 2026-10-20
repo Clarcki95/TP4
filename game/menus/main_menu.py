@@ -1,6 +1,7 @@
 
 import tkinter as tk
 
+
 class Main_menu(tk.Canvas):
     def __init__(self, canva, width, height, start, keybinds, close):
         super().__init__(canva, width = width, height = height, background = "black")
