@@ -5,9 +5,11 @@ Auteur : Nino BELAOUD
 """
 
 import tkinter as tk
-from functools import partial
+from collections.abc import Callable
 
+from entities.bricks.accelerator_brick import AcceleratorBrick
 from entities.bricks.brick import Brick
+from entities.bricks.ice_brick import IceBrick
 from game.levels.level import Level
 from utils.list import List
 
@@ -15,7 +17,9 @@ from utils.list import List
 class LevelManager:
     """Conserve les niveaux disponibles et les briques actuellement en jeu."""
 
-    def __init__(self, canvas: tk.Canvas, sound_manager) -> None:
+    def __init__(
+        self, canvas: tk.Canvas, sound_manager, on_freeze: Callable[[], None],
+    ) -> None:
         """Prépare le premier niveau sans encore créer ses widgets."""
         self.selected_level: Level | None = None
 
@@ -27,12 +31,36 @@ class LevelManager:
         # Les définitions des niveaux restent disponibles après un redémarrage.
         self.levels = List()
 
+        # ========== Niveau test ==========
+        level_0_factories = List()
+
+        for pos_x in (400, 800, 600, 1000, 1200):
+            level_0_factories.add(
+                lambda pos_x=pos_x: AcceleratorBrick(
+                    pos_x, 150, self.sound_manager, self.canvas
+                )
+            )
+
+        for pos_x in (500, 700, 900, 1100):
+            level_0_factories.add(
+                lambda pos_x=pos_x: IceBrick(
+                    pos_x, 225, self.sound_manager, self.canvas, on_freeze
+                )
+            )
+
+        level_0 = Level("Niveau #~TEST~#", level_0_factories)
+
+        self.levels.add(level_0)
+        # ===============================
+
         # ========== Niveau 1 ==========
         level_1_factories = List()
 
         for pos_x in (400, 800, 600, 1000, 1200):
             level_1_factories.add(
-                partial(Brick, pos_x, 150, self.sound_manager, 1, self.canvas)
+                lambda pos_x=pos_x: Brick(
+                    pos_x, 150, self.sound_manager, 1, self.canvas
+                )
             )
 
         level_1 = Level("Niveau 1", level_1_factories)
@@ -45,7 +73,9 @@ class LevelManager:
         for pos_y in (150, 225):
             for pos_x in (400, 600, 800, 1000, 1200):
                 level_2_factories.add(
-                    partial(Brick, pos_x, pos_y, self.sound_manager, 1, self.canvas)
+                    lambda pos_x=pos_x, pos_y=pos_y: Brick(
+                        pos_x, pos_y, self.sound_manager, 1, self.canvas
+                    )
                 )
         self.levels.add(Level("Niveau 2", level_2_factories))
         # ===============================

@@ -32,7 +32,7 @@ class Brick(tk.Label):
         super().__init__(master, borderwidth=0, highlightthickness=0)
 
         self.pv = pv
-        self.texture = RESOURCES_DIR / "bricks" / "brick.webp"
+        self.texture = RESOURCES_DIR / "bricks" / "brick_v2.webp"
         self.score = 10
 
         self.sound_manager = sound_manager

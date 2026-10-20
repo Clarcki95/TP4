@@ -19,6 +19,13 @@ Le déplacement est calculé à chaque tick. Au rebond, la balle est déviée da
 sens du déplacement de la raquette, proportionnellement à sa vitesse, sans changer
 sa vitesse totale. **Échap** affiche ou masque les options.
 
+Les briques de glace du niveau de test ont une texture bleue et cassent en un coup.
+À leur destruction, les frottements de la raquette sont divisés par 5 pendant
+5 secondes : elle glisse davantage au relâchement des touches et le fond devient
+givré. Casser une autre brique de glace pendant l'effet ne le cumule pas et ne
+prolonge pas sa durée. À l'expiration, le fond et les frottements redeviennent
+normaux ; une nouvelle brique peut alors déclencher un nouvel effet.
+
 Lorsque toutes les briques cassables ont été détruites, le jeu se met en pause
 et affiche **VICTOIRE**, le niveau réussi et le temps de jeu (hors pauses).
 Le menu propose **Next level**, **Restart level** et **Back to menu**.
