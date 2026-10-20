@@ -15,11 +15,12 @@ from utils.list import List
 class LevelManager:
     """Conserve les niveaux disponibles et les briques actuellement en jeu."""
 
-    def __init__(self, canvas: tk.Canvas) -> None:
+    def __init__(self, canvas: tk.Canvas, sound_manager) -> None:
         """Prépare le premier niveau sans encore créer ses widgets."""
         self.selected_level: Level | None = None
 
         self.canvas = canvas
+        self.sound_manager = sound_manager
         # Seules les briques de la partie en cours sont modifiées ou détruites.
         self.bricks = List()
 
@@ -31,7 +32,7 @@ class LevelManager:
 
         for pos_x in (400, 800, 600, 1000, 1200):
             # partial mémorise les arguments sans construire le widget immédiatement.
-            level_1_bricks.add(partial(Brick, pos_x, 150, 1, self.canvas))
+            level_1_bricks.add(partial(Brick, pos_x, 150, self.sound_manager, 1, self.canvas))
 
         level_1 = Level("Niveau 1", level_1_bricks)
 

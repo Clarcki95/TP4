@@ -2,7 +2,7 @@
 But : Affichage Tkinter, menus et boucle de mise à jour du jeu.
 Auteur : Tristan GUIEU, Nino BELAOUD
 Date : 06/10/26
-TODO : finir les raccourcis clavier, l'affichage du jeu et le fond du menu principal.
+TODO : l'affichage du jeu et le fond du menu principal.
 """
 
 import tkinter as tk
@@ -19,6 +19,8 @@ from config import (
 from entities.ball import Ball
 from entities.racket import Racket
 from entities.wall import Wall
+from utils.list import List
+from game.sound_manager import Sound_manager
 
 from game.levels.level_manager import LevelManager
 from game.menus.gameover_menu import Gameover_menu
@@ -42,6 +44,8 @@ class AffichageTkinter(tk.Tk):
 
         self.assigned_keys = ASSIGNED_KEYS
         self.previous_assigned_keys = self.assigned_keys.copy()
+
+        self.sound_manager = Sound_manager()
 
         self.configure_window()
         self.bind_controls()
@@ -173,7 +177,7 @@ class AffichageTkinter(tk.Tk):
 
     def setup_level_manager(self) -> None:
         """Initialise les définitions des niveaux pour le canevas du jeu."""
-        self.level_manager = LevelManager(self.base_canvas)
+        self.level_manager = LevelManager(self.base_canvas, self.sound_manager)
 
     def create_ball(self) -> None:
         """Crée la balle avec sa vitesse et son angle de départ aléatoire."""
@@ -222,7 +226,6 @@ class AffichageTkinter(tk.Tk):
         for wall in self.walls.to_list():
             will_collide = wall.compute_collision(self.ball)
             if will_collide and not wall.is_bouncy():
-                # TODO : gérer la fin de partie.
                 self.game_over()
 
         level_manager = self.level_manager
@@ -234,6 +237,9 @@ class AffichageTkinter(tk.Tk):
                 brick.on_touch()
                 if brick.pv == 0:
                     level_manager.remove_brick(index)
+
+        if will_collide :
+            self.sound_manager.sound("bounce")
 
         self.racket.compute_collision(self.ball)
 
@@ -280,7 +286,7 @@ class AffichageTkinter(tk.Tk):
         # Instancier de nouvelles briques sans réutiliser les widgets détruits.
         self.level_manager.init_level()
 
-        self.racket = Racket(self.base_canvas)
+        self.racket = Racket(self.base_canvas, self.sound_manager)
         self.base_canvas.tag_raise(self.racket.rect)
 
         self.tick_id = self.base_canvas.after(
