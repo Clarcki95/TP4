@@ -11,7 +11,7 @@ class Sound_manager:
         self._audio = WindowsAudio()
         self.sounds = {}
         try:
-            for name in ("bounce_racket", "bounce", "death"):
+            for name in ("bounce_racket", "bounce", "death", "victory", "defeat", "explosion"):
                 self.sounds[name] = self._audio.load(RESOURCES_DIR / "sounds" / f"{name}.wav")
         except Exception:
             self.close()

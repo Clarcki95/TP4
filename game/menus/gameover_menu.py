@@ -42,6 +42,13 @@ class Gameover_menu(tk.Canvas):
             fill="red",
         )
 
+        self.create_text(
+            (self.width / 2, 2 * self.space),
+            text="OVER",
+            font=("Fixedsys", 50),
+            fill="red",
+        )
+
         back_to_menu = self.create_text(
             (self.width / 2, 3 * self.space),
             text="Back to menu",
