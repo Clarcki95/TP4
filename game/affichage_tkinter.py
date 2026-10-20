@@ -257,6 +257,8 @@ class AffichageTkinter(tk.Tk):
             self.level_elapsed_time,
         )
 
+        self.sound_manager.sound("victory")
+
     def tick_collisions(self) -> None:
         """Traite les collisions avec les murs, les briques et la raquette."""
         # Collisions avec les murs
