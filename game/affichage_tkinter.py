@@ -190,7 +190,7 @@ class AffichageTkinter(tk.Tk):
         if self.waiting_for_key:
             return
 
-        if self.victory_menu.is_visible():
+        if not self.game_on :
             return
 
         if self.keybinds_menu.is_visible():
@@ -282,6 +282,7 @@ class AffichageTkinter(tk.Tk):
             return
 
         self.level_won = True
+        self.game_on = False
         self.tick_pause(True)
         self.reset_movement()
         self.victory_menu.show(
