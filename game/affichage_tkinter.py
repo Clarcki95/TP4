@@ -63,9 +63,7 @@ class AffichageTkinter(tk.Tk):
 
     def configure_window(self) -> None:
         """Configure la fenêtre et le canvas à la taille de l'écran."""
-        GAME_WIDTH = self.winfo_screenwidth()
-        GAME_HEIGHT = self.winfo_screenheight()
-
+        
         self.title("Casse brique")
         self.geometry(f"{GAME_WIDTH}x{GAME_HEIGHT}+0+0")
         self.attributes("-fullscreen", True)
